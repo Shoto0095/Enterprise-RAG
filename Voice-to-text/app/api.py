@@ -1,19 +1,19 @@
-import asyncio, uuid, os, shutil,time
+import asyncio
+import json
+import uuid
+import os
+import shutil
+import time
 from pathlib import Path
 from .logger import get_logger
 from fastapi import FastAPI, Form, Request, UploadFile, File, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from .chatbot import invoke as _invoke
 from fastapi.templating import Jinja2Templates
 from .helper_folder.helper_function import process_video_pipeline, ingest_pdf
 from .helper_folder.job_status import JOB_STATUS, JOB_TIMEOUT
-from .helper_folder.job_status import JOB_STATUS
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pathlib import Path
 
 _logger = get_logger("api")
 app = FastAPI(title="Video to PDF Transcription")
@@ -26,28 +26,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-STATIC_DIR = Path(__file__).parent / "static"
 
 templates_dir = Path(__file__).parent.parent/ "templates" 
 templates = Jinja2Templates(directory=str(templates_dir))
 # Serve React assets
-app.mount(
-    "/assets",
-    StaticFiles(directory=STATIC_DIR / "assets"),
-    name="assets"
-)
 
-# Serve React app
-@app.get("/")
-async def serve_frontend():
-    return FileResponse(STATIC_DIR / "index.html")
+# # Serve React app
+# @app.get("/")
+# async def serve_frontend():
+#     return FileResponse(templates_dir / "index.html")
 
-@app.get("/html", response_class=HTMLResponse)
-async def chat_ui(request: Request):
-    return templates.TemplateResponse("chatbot.html", {
-        "request": request,
-        "title": "Video Analyzer Chatbot"
-    })
+# @app.get("/html", response_class=HTMLResponse)
+# async def chat_ui(request: Request):
+#     return templates.TemplateResponse("chatbot.html", {
+#         "request": request,
+#         "title": "Video Analyzer Chatbot"
+#     })
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'Videos')
 PDF_FOLDER = os.path.join(os.getcwd(), 'PDFs')
@@ -57,10 +51,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PDF_FOLDER, exist_ok=True)
 
 
-# @app.get("/")
-# async def read_root():
-#     """Serve the main HTML page"""
-#     return FileResponse("templates/index.html")
+@app.get("/")
+async def read_root():
+    """Serve the main HTML page"""
+    return FileResponse("templates/index.html")
 
 
 
@@ -129,9 +123,19 @@ async def upload_file(
                 shutil.copyfileobj(file.file, buffer)
             success = ingest_pdf(pdf_path)
 
+            if not success:
+                _logger.error(f"PDF ingestion failed for {filename}")
+                JOB_STATUS[job_id]["status"] = "failed"
+                JOB_STATUS[job_id]["message"] = "Error occurred please try again later"
+                raise HTTPException(status_code=500, detail="Error occurred please try again later")
+
+            JOB_STATUS[job_id]["status"] = "success"
+            JOB_STATUS[job_id]["message"] = "Processing completed successfully"
+
             return {
                 "success": True,
-                "message": "PDF uploaded successfully. Processing completed." if success else "PDF upload failed."
+                "job_id": job_id,
+                "message": "PDF uploaded successfully. Processing completed."
             }
         else:
             _logger.error(f"Unsupported file type: {type}")
@@ -165,6 +169,7 @@ async def chat(request: Request):
             data = await request.json()
             if isinstance(data, dict):
                 user_query = data.get("message")
+                session_id = (data.get("session_id", "") or "").strip() or None
         elif "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
             form = await request.form()
             user_query = form.get("message") if form else None
@@ -175,6 +180,7 @@ async def chat(request: Request):
                     data = await request.json()
                     if isinstance(data, dict):
                         user_query = data.get("message")
+                        session_id = (data.get("session_id", "") or "").strip() or None
                 except Exception:
                     try:
                         form = await request.form()
@@ -184,35 +190,33 @@ async def chat(request: Request):
                         user_query = body.decode(errors="ignore").strip() if body else None
     except Exception:
         pass
+
     if user_query:
         user_query = str(user_query).strip()
-    
+
     if not user_query:
         return JSONResponse({"error": "Please enter a message."}, status_code=400)
 
-    session_id = request.headers.get("X-Session-ID", "").strip() or None
-    
     if not session_id:
-        try:
-            if "application/json" in (request.headers.get("content-type") or "").lower():
-                body_data = await request.json()
-                session_id = (body_data.get("session_id", "").strip() or None) if isinstance(body_data, dict) else None
-        except Exception:
-            pass
-    
+        session_id = request.headers.get("X-Session-ID", "").strip() or None
+
     if not session_id:
         session_id = str(uuid.uuid4())
-    loop = asyncio.get_running_loop()    
-    fut_rag = loop.run_in_executor(None, lambda q=user_query: _invoke(q,session_id))
-    answer = await fut_rag
-    return JSONResponse({
-                "reply": answer,
-                "session_id": session_id
-            }, status_code=200)
+
+    async def event_generator():
+        yield json.dumps({"event": "status", "message": "AI Buzz is thinking...", "session_id": session_id}) + "\n"
+        try:
+            loop = asyncio.get_running_loop()
+            answer = await loop.run_in_executor(None, lambda: _invoke(user_query, session_id))
+            yield json.dumps({"event": "answer", "reply": answer, "session_id": session_id}) + "\n"
+        except Exception as e:
+            yield json.dumps({"event": "error", "message": str(e), "session_id": session_id}) + "\n"
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
         
-# (optional) React Router support
-@app.get("/{path:path}")
-async def react_router(path: str):
-    return FileResponse(STATIC_DIR / "index.html")
+# # (optional) React Router support
+# @app.get("/{path:path}")
+# async def react_router(path: str):
+#     return FileResponse(STATIC_DIR / "index.html")
 
         

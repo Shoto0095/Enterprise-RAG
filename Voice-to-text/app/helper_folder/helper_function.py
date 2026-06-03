@@ -53,7 +53,10 @@ def process_video_pipeline(video_path: str, filename: str, job_id: str = None):
     try:
         transcript_text = transcribe_video(video_path)
         pdf_path = create_pdf_from_text(transcript_text, filename)
-        ingest_pdf(pdf_path)
+        success = ingest_pdf(pdf_path)
+
+        if not success:
+            raise RuntimeError("PDF ingestion failed during video pipeline")
 
         if job_id and job_id in JOB_STATUS:
             JOB_STATUS[job_id]["status"] = "success"
