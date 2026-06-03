@@ -21,3 +21,8 @@ chroma_db/
 
 # Ignore all PDF files
 *.pdf
+
+# Ignore logs
+/logs/
+/Voice-to-text/logs/
+*.log

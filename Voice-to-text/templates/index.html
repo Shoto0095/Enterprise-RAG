@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video to PDF Transcription</title>
-
+    <title>Enterprise RAG Project - Intelligent Document Retrieval</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         * {
             margin: 0;
@@ -12,52 +13,368 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        :root {
+            --bg-primary: #0B0F19;
+            --bg-container: #161D2F;
+            --accent-cyan: #00E5FF;
+            --accent-violet: #7C4DFF;
+            --text-primary: #F1F5F9;
+            --text-secondary: #8B94A8;
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-accent: rgba(0, 229, 255, 0.15);
         }
 
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+        html, body {
+            height: 100%;
             width: 100%;
-            padding: 40px;
+            overflow-x: hidden;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        /* BACKGROUND GRADIENTS - Dark Room Effect */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            top: -40%;
+            left: 10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 77, 255, 0.08) 0%, transparent 70%);
+            filter: blur(60px);
+            animation: drift1 20s ease-in-out infinite;
+        }
+
+        body::after {
+            top: 20%;
+            right: 5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+            filter: blur(60px);
+            animation: drift2 25s ease-in-out infinite;
+        }
+
+        @keyframes drift1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        @keyframes drift2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-40px, 40px); }
+        }
+
+        /* Additional background gradient layer */
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .viewport {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #0D1117 100%);
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            background: rgba(11, 15, 25, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 70px;
+            z-index: 999;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+        }
+
+        .navbar-brand i {
             font-size: 28px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
+        .nav-tabs {
+            display: flex;
+            gap: 60px;
+            list-style: none;
+        }
+
+        .nav-tab {
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--text-secondary);
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 8px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .nav-tab:hover {
+            color: var(--accent-cyan);
+            border-color: var(--border-accent);
+            background: rgba(0, 229, 255, 0.03);
+        }
+
+        .nav-tab.active {
+            color: var(--accent-cyan);
+            border-color: var(--border-accent);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        /* MAIN CONTAINER */
+        .main {
+            margin-top: 90px;
+            min-height: calc(100vh - 90px);
+            padding: 100px 70px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page {
+            display: none;
+            animation: pageTransition 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes pageTransition {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* UPLOAD PAGE - Asymmetric Bento Layout */
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .upload-hero {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+
+        .upload-hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            color: var(--text-primary);
+        }
+
+        .upload-hero p {
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 28px;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-accent);
+            background: rgba(22, 29, 47, 0.8);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid var(--border-accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--accent-cyan);
+            font-size: 22px;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover .feature-icon {
+            background: rgba(0, 229, 255, 0.12);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        }
+
+        .feature-text h3 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .feature-text p {
             font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 0.01em;
+            margin: 0;
+            line-height: 1.5;
         }
 
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 10px;
-            padding: 40px 20px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 80px 40px;
             text-align: center;
             cursor: pointer;
-            background-color: #f8f9ff;
-            margin-bottom: 20px;
+            background: var(--bg-container);
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.08) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .upload-area:hover {
+            border-color: var(--border-accent);
+            background: rgba(22, 29, 47, 0.8);
+        }
+
+        .upload-area:hover::before {
+            opacity: 1;
         }
 
         .upload-area.dragover {
-            border-color: #764ba2;
-            background-color: #e8e4ff;
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .upload-area.dragover::before {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, transparent 100%);
+        }
+
+        .upload-icon {
+            font-size: 72px;
+            color: var(--accent-cyan);
+            margin-bottom: 24px;
+            opacity: 0.8;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .upload-area:hover .upload-icon {
+            opacity: 1;
+            transform: scale(1.08);
+        }
+
+        .upload-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-text h2 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .upload-text p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: 0.01em;
         }
 
         #fileInput {
@@ -65,23 +382,99 @@
         }
 
         .file-info {
-            background-color: #f0f0f0;
-            padding: 15px;
+            background: var(--bg-container);
+            border: 1px solid var(--border-accent);
+            padding: 16px 24px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: none;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.01em;
         }
 
         .file-info.show {
-            display: block;
+            display: flex;
+        }
+
+        .file-info i {
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        button {
+            padding: 16px 40px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.02em;
+            background: var(--bg-container);
+            color: var(--text-primary);
+        }
+
+        .btn-upload {
+            flex: 1;
+            background: linear-gradient(135deg, var(--accent-cyan), rgba(0, 229, 255, 0.8));
+            color: #000;
+            border-color: var(--accent-cyan);
+            font-weight: 800;
+        }
+
+        .btn-upload:hover:not(:disabled) {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-upload:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            flex: 1;
+            display: none;
+            background: var(--bg-container);
+            border-color: var(--border-accent);
+            color: var(--accent-cyan);
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.08);
         }
 
         .status-message {
-            padding: 15px;
+            padding: 16px 24px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: none;
-            font-size: 14px;
+            font-size: 15px;
+            border: 1px solid;
+            letter-spacing: 0.01em;
+            animation: slideInDown 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .status-message.show {
@@ -89,23 +482,26 @@
         }
 
         .status-message.success {
-            background-color: #d4edda;
-            color: #155724;
+            background: rgba(16, 185, 129, 0.05);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
         .status-message.error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background: rgba(239, 68, 68, 0.05);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
         }
 
         .status-message.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
+            background: rgba(0, 229, 255, 0.05);
+            color: var(--accent-cyan);
+            border-color: var(--border-accent);
         }
 
         .progress-container {
             display: none;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .progress-container.show {
@@ -114,187 +510,1241 @@
 
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background-color: #e0e0e0;
-            border-radius: 10px;
+            height: 2px;
+            background-color: var(--border-subtle);
+            border-radius: 2px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            animation: progress 2s infinite;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
+            animation: progress 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
         @keyframes progress {
             0% { width: 20%; }
-            50% { width: 70%; }
+            50% { width: 80%; }
             100% { width: 100%; }
         }
 
-        .button-group {
+        /* CHAT PAGE */
+        .chat-container {
             display: flex;
+            flex-direction: column;
+            height: calc(100vh - 90px - 200px);
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-container:hover {
+            border-color: var(--border-accent);
+        }
+
+        .chat-header {
+            padding: 40px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(0, 229, 255, 0.02);
+        }
+
+        .chat-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .chat-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 0.01em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-accent);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            animation: messageAppear 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            border: 1px solid;
+        }
+
+        .message.ai .message-avatar {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--border-accent);
+            color: var(--accent-cyan);
+        }
+
+        .message.user .message-avatar {
+            background: rgba(124, 77, 255, 0.1);
+            border-color: rgba(124, 77, 255, 0.3);
+            color: var(--accent-violet);
+        }
+
+        .message-content {
+            max-width: 65%;
+            padding: 16px 20px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            border: 1px solid;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message.ai .message-content {
+            background: rgba(0, 229, 255, 0.05);
+            border-color: var(--border-accent);
+            color: var(--text-primary);
+        }
+
+        .message.user .message-content {
+            background: rgba(124, 77, 255, 0.1);
+            border-color: rgba(124, 77, 255, 0.3);
+            color: var(--text-primary);
+        }
+
+        .chat-input-area {
+            padding: 32px 40px;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(0, 229, 255, 0.02);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        #chatInput {
+            flex: 1;
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            letter-spacing: 0.01em;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #chatInput:focus {
+            outline: none;
+            border-color: var(--border-accent);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        #chatInput::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-send {
+            background: var(--bg-container);
+            color: var(--accent-cyan);
+            padding: 14px 24px;
+            border: 1px solid var(--border-accent);
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-send:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.08);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+        }
+
+        /* ABOUT PAGE - Premium Asymmetric Layout */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .about-intro {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+
+        .about-intro h1 {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            color: var(--text-primary);
+        }
+
+        .about-intro > p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            letter-spacing: 0.01em;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .social-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .social-btn:hover {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--border-accent);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+        }
+
+        .about-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            padding: 32px;
+            border-radius: 10px;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            border-color: var(--border-accent);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        button {
-            padding: 12px;
-            flex: 1;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        .card i {
+            color: var(--accent-cyan);
+            font-size: 20px;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            letter-spacing: 0.01em;
+        }
+
+        .card a {
+            color: var(--accent-cyan);
+            text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.02em;
         }
 
-        .btn-upload {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .card a:hover {
+            gap: 10px;
         }
 
-        .btn-clear {
-            background: #e0e0e0;
+        .skills-section {
+            background: var(--bg-container);
+            border: 1px solid var(--border-subtle);
+            padding: 40px;
+            border-radius: 10px;
+            margin-top: 50px;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .skills-section:hover {
+            border-color: var(--border-accent);
+        }
+
+        .skills-section h3 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 32px;
+            color: var(--text-primary);
+        }
+
+        .skill-category {
+            margin-bottom: 28px;
+        }
+
+        .skill-category h4 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--accent-cyan);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-accent);
+            color: var(--accent-cyan);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .skill-tag:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .navbar {
+                padding: 0 50px;
+            }
+
+            .main {
+                padding: 80px 50px;
+            }
+
+            .upload-section {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+
+            .upload-hero h1 {
+                font-size: 44px;
+            }
+
+            .about-intro h1 {
+                font-size: 44px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 30px;
+                height: 80px;
+            }
+
+            .navbar-brand {
+                font-size: 24px;
+                gap: 12px;
+            }
+
+            .nav-tabs {
+                gap: 25px;
+                font-size: 13px;
+            }
+
+            .main {
+                margin-top: 80px;
+                padding: 60px 30px;
+            }
+
+            .upload-hero h1 {
+                font-size: 32px;
+            }
+
+            .about-intro h1 {
+                font-size: 32px;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-container {
+                height: calc(100vh - 80px - 150px);
+            }
+
+            .features-grid {
+                gap: 20px;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 60px 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0 20px;
+            }
+
+            .main {
+                padding: 50px 20px;
+            }
+
+            .nav-tabs {
+                gap: 15px;
+            }
+
+            .upload-section {
+                gap: 40px;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+
+            button {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 
 <body>
-<div class="container">
-    <h1>Video content to chatbot</h1>
-    <p class="subtitle">Upload video and get a summary on chatbot</p>
+    <div class="viewport">
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <i class="fas fa-layer-group"></i>
+                Enterprise RAG Project
+            </div>
+            <ul class="nav-tabs">
+                <li class="nav-tab active" onclick="switchPage('upload', event)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload & Process
+                </li>
+                <li class="nav-tab" onclick="switchPage('chat', event)">
+                    <i class="fas fa-comments"></i>
+                    AI Buzz
+                </li>
+                <li class="nav-tab" onclick="switchPage('navigation', event)">
+                    <i class="fas fa-compass"></i>
+                    Navigation
+                </li>
+                <li class="nav-tab" onclick="switchPage('about', event)">
+                    <i class="fas fa-user-circle"></i>
+                    About
+                </li>
+            </ul>
+        </nav>
 
-    <div class="upload-area" id="uploadArea">
-        Click or drop video file here
-        <input type="file" id="fileInput" accept="video/*">
-    </div>
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- UPLOAD PAGE -->
+            <div id="upload" class="page active">
+                <div class="upload-section">
+                    <div class="upload-hero">
+                        <h1>Enterprise RAG Intelligence</h1>
+                        <p>Upload videos, PDFs, or images and turn them into searchable knowledge with AI-powered retrieval and chatbot insight.Analyze thousands of pages of content in seconds. Upload videos, PDFs, or images to build a searchable AI knowledge repository powered by semantic retrieval, contextual understanding, and grounded responses. If you need assistance using the platform, head to the Navigation tab for a detailed workflow guide.</p>
+                        
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-file-upload"></i></div>
+                                    <div class="feature-text">
+                                        <h3>Multi-format Uploads</h3>
+                                        <p>Ingest video, PDF, or image files in one platform.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-search"></i></div>
+                                    <div class="feature-text">
+                                        <h3>Semantic Search</h3>
+                                        <p>Find answers from your documents with vector retrieval.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-history"></i></div>
+                                    <div class="feature-text">
+                                        <h3>Document History</h3>
+                                        <p>Track your uploads and revisit processed content quickly.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="file-info" id="fileInfo"></div>
+                    <div>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon"><i class="fas fa-file-import"></i></div>
+                            <div class="upload-text">
+                                <h2>Drop documents here</h2>
+                                <p>or click to browse videos, PDFs, or images</p>
+                            </div>
+                            <input type="file" id="fileInput" accept="video/*,application/pdf,image/*">
+                        </div>
 
-    <div class="status-message" id="statusMessage"></div>
+                        <div class="file-info" id="fileInfo">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="fileName"></span>
+                        </div>
 
-    <div class="progress-container" id="progressContainer">
-        <div class="progress-bar">
-            <div class="progress-fill"></div>
+                        <div class="status-message" id="statusMessage"></div>
+
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn-upload" id="uploadBtn">Choose File</button>
+                            <button class="btn-clear" id="clearBtn">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT PAGE -->
+            <div id="chat" class="page">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div>
+                            <h2>AI Buzz</h2>
+                            <p>Ask questions about uploaded videos, PDFs, or images and get grounded insights.</p>
+                            <p id="chatStatus" style="font-size: 13px; opacity: 0.8; margin-top: 6px;">No active document processing.</p>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai">
+                            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                            <div class="message-content">
+                                Welcome to AI Buzz. Upload documents and I will analyze them. Ask questions about your content, and I will provide precise, context-aware answers.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <div class="input-wrapper">
+                            <input type="text" id="chatInput" placeholder="Share your thoughts...">
+                            <button class="btn-send" id="sendBtn">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVIGATION PAGE -->
+            <div id="navigation" class="page">
+                <div class="about-grid">
+                    <div class="about-intro">
+                        <h1>Navigation</h1>
+                        <p>Use this section to move between the core application flows and review your document history.</p>
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-upload"></i></div>
+                                    <div class="feature-text">
+                                        <h3>Upload & Process</h3>
+                                        <p>Upload videos, PDFs, or images for processing and ingestion.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                                    <div class="feature-text">
+                                        <h3>AI Buzz</h3>
+                                        <p>Ask questions and interact with the RAG chatbot over your documents.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-inner">
+                                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="feature-text">
+                                        <h3>Document History</h3>
+                                        <p>Review a list of your recent file uploads and their types.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-cards">
+                        <div class="card">
+                            <div class="card-inner">
+                                <h3>
+                                    <i class="fas fa-history"></i>
+                                    Document History
+                                </h3>
+                                <p>Track your uploads in the app. History is stored locally in your browser so you can revisit recent file activity quickly.</p>
+                                <div id="historyList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABOUT PAGE -->
+            <div id="about" class="page">
+                <div class="about-grid">
+                    <div class="about-intro">
+                        <h1>Pratyush Mathur</h1>
+                        <p>AI/ML Engineer & Builder focused on enterprise-grade AI systems with LangChain, LangGraph, PyTorch, and Azure.</p>
+                        <p>Currently working as an AI/ML Developer at MegaMax Services. I build document intelligence, RAG chatbots, multi-modal knowledge assistants, and production-ready AI automation pipelines.</p>
+                        
+                        <div class="social-links">
+                            <a href="https://linkedin.com/in/pratyush-mathur-35a1a2251" class="social-btn" title="LinkedIn" target="_blank" rel="noopener noreferrer">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                            <a href="https://github.com/Shoto0095" class="social-btn" title="GitHub" target="_blank" rel="noopener noreferrer">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="mailto:pratyushmathur2004@gmail.com" class="social-btn" title="Email">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            <a href="https://pratyushmathur.vercel.app/" class="social-btn" title="Portfolio" target="_blank" rel="noopener noreferrer">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="about-cards">
+                        <div class="card">
+                            <div class="card-inner">
+                                <h3>
+                                    <i class="fas fa-briefcase"></i>
+                                    Experience
+                                </h3>
+                                <p>AI/ML Developer at MegaMax Services since June 2025, building enterprise AI solutions for document intelligence, HRMS chatbots, and automation.</p>
+                                <a href="https://pratyushmathur.vercel.app/asset/resume.pdf" target="_blank" rel="noopener noreferrer">View Resume →</a>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-inner">
+                                <h3>
+                                    <i class="fas fa-code"></i>
+                                    Work
+                                </h3>
+                                <p>Delivered LangChain and LangGraph orchestration, multi-modal RAG pipelines, Azure-hosted ML services, and secure enterprise data workflows.</p>
+                                <a href="https://pratyushmathur.vercel.app" target="_blank" rel="noopener noreferrer">View Portfolio →</a>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-inner">
+                                <h3>
+                                    <i class="fas fa-graduation-cap"></i>
+                                    Expertise
+                                </h3>
+                                <p>Specialized in production LLM orchestration, fine-tuning with LoRA/PEFT/QLoRA, PyTorch model deployment, and AI-powered enterprise automation.</p>
+                                <a href="https://pratyushmathur.vercel.app/#about" target="_blank" rel="noopener noreferrer">Learn More →</a>
+                            </div>
+                        </div>
+
+                        <div class="skills-section">
+                            <h3>Core Skills</h3>
+                            <div class="skill-category">
+                                <h4>AI / ML</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">LangChain</span>
+                                    <span class="skill-tag">LangGraph</span>
+                                    <span class="skill-tag">PyTorch</span>
+                                    <span class="skill-tag">RAG</span>
+                                </div>
+                            </div>
+                            <div class="skill-category">
+                                <h4>Fine-tuning</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">LoRA</span>
+                                    <span class="skill-tag">PEFT</span>
+                                    <span class="skill-tag">QLoRA</span>
+                                    <span class="skill-tag">Quantization</span>
+                                </div>
+                            </div>
+                            <div class="skill-category">
+                                <h4>Cloud & DevOps</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">Azure</span>
+                                    <span class="skill-tag">FastAPI</span>
+                                    <span class="skill-tag">Vector DBs</span>
+                                    <span class="skill-tag">PostgreSQL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="button-group">
-        <button class="btn-upload" id="uploadBtn">Choose Video</button>
-        <button class="btn-clear" id="clearBtn" style="display:none;">Clear</button>
-    </div>
-</div>
+    <script>
+        let selectedFile = null;
+        let pollingInterval = null;
 
-<script>
-let selectedFile = null;
-let pollingInterval = null;
+        // DOM Elements
+        const uploadArea = document.getElementById("uploadArea");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const fileInfo = document.getElementById("fileInfo");
+        const fileName = document.getElementById("fileName");
+        const statusMessage = document.getElementById("statusMessage");
+        const progressContainer = document.getElementById("progressContainer");
+        const chatInput = document.getElementById("chatInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const chatMessages = document.getElementById("chatMessages");
 
-const uploadArea = document.getElementById("uploadArea");
-const fileInput = document.getElementById("fileInput");
-const uploadBtn = document.getElementById("uploadBtn");
-const clearBtn = document.getElementById("clearBtn");
-const fileInfo = document.getElementById("fileInfo");
-const statusMessage = document.getElementById("statusMessage");
-const progressContainer = document.getElementById("progressContainer");
+        // PAGE SWITCHING
+        function switchPage(pageId, event) {
+            const pages = document.querySelectorAll(".page");
+            const tabs = document.querySelectorAll(".nav-tab");
 
-uploadBtn.onclick = () => fileInput.click();
+            pages.forEach(page => page.classList.remove("active"));
+            tabs.forEach(tab => tab.classList.remove("active"));
 
-uploadArea.onclick = () => fileInput.click();
-
-fileInput.onchange = (e) => {
-    selectedFile = e.target.files[0];
-    if (!selectedFile) return;
-    fileInfo.textContent = selectedFile.name;
-    fileInfo.classList.add("show");
-    clearBtn.style.display = "block";
-    uploadBtn.textContent = "Upload Video";
-    uploadBtn.onclick = uploadFile;
-};
-
-clearBtn.onclick = () => {
-    selectedFile = null;
-    fileInput.value = "";
-    fileInfo.classList.remove("show");
-    clearBtn.style.display = "none";
-    uploadBtn.textContent = "Choose Video";
-    uploadBtn.onclick = () => fileInput.click();
-    hideMessage();
-};
-
-function showMessage(msg, type) {
-    statusMessage.textContent = msg;
-    statusMessage.className = `status-message show ${type}`;
-}
-
-function hideMessage() {
-    statusMessage.className = "status-message";
-}
-
-async function uploadFile() {
-    if (!selectedFile) return;
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
-    uploadBtn.disabled = true;
-    progressContainer.classList.add("show");
-    showMessage("Uploading and processing started.", "info");
-
-    const res = await fetch("/upload", {
-        method: "POST",
-        body: formData
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-        showMessage(data.detail || "Upload failed", "error");
-        uploadBtn.disabled = false;
-        progressContainer.classList.remove("show");
-        return;
-    }
-
-    localStorage.setItem("currentJobId", data.job_id);
-    startPolling(data.job_id);
-}
-
-async function startPolling(jobId) {
-    if (pollingInterval) clearInterval(pollingInterval);
-
-    pollingInterval = setInterval(async () => {
-        const res = await fetch(`/status/${jobId}`);
-        const data = await res.json();
-
-        if (data.status === "processing") {
-            showMessage("File is being processed. Please wait.", "info");
+            document.getElementById(pageId).classList.add("active");
+            if (event) {
+                const tabItem = event.target.closest(".nav-tab");
+                if (tabItem) tabItem.classList.add("active");
+            }
         }
 
-        if (data.status === "success") {
-            showMessage("Processing completed successfully.", "success");
-            cleanup();
+        // UPLOAD FUNCTIONALITY
+        const supportedTypes = ["video/", "application/pdf", "image/"];
+
+        uploadBtn.onclick = () => fileInput.click();
+        uploadArea.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if (!selectedFile) return;
+            if (!supportedTypes.some(type => selectedFile.type.startsWith(type))) {
+                showMessage("Unsupported file type. Please upload video, PDF, or image.", "error");
+                selectedFile = null;
+                fileInput.value = "";
+                return;
+            }
+            fileName.textContent = selectedFile.name;
+            fileInfo.classList.add("show");
+            clearBtn.style.display = "block";
+            uploadBtn.textContent = "Upload File";
+            uploadBtn.onclick = uploadFile;
+        };
+
+        clearBtn.onclick = () => {
+            selectedFile = null;
+            fileInput.value = "";
+            fileInfo.classList.remove("show");
+            clearBtn.style.display = "none";
+            uploadBtn.textContent = "Choose File";
+            uploadBtn.onclick = () => fileInput.click();
+            hideMessage();
+        };
+
+        uploadArea.ondragover = (e) => {
+            e.preventDefault();
+            uploadArea.classList.add("dragover");
+        };
+
+        uploadArea.ondragleave = () => {
+            uploadArea.classList.remove("dragover");
+        };
+
+        uploadArea.ondrop = (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove("dragover");
+            selectedFile = e.dataTransfer.files[0];
+            if (!selectedFile) return;
+            if (!supportedTypes.some(type => selectedFile.type.startsWith(type))) {
+                showMessage("Unsupported file type. Please upload video, PDF, or image.", "error");
+                selectedFile = null;
+                return;
+            }
+            fileName.textContent = selectedFile.name;
+            fileInfo.classList.add("show");
+            clearBtn.style.display = "block";
+            uploadBtn.textContent = "Upload File";
+            uploadBtn.onclick = uploadFile;
+        };
+
+        function showMessage(msg, type) {
+            statusMessage.textContent = msg;
+            statusMessage.className = `status-message show ${type}`;
         }
 
-        if (data.status === "failed") {
-            showMessage(`Processing failed: ${data.message}`, "error");
-            cleanup();
+        function hideMessage() {
+            statusMessage.className = "status-message";
         }
-    }, 3000);
-}
 
-function cleanup() {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-    localStorage.removeItem("currentJobId");
-    progressContainer.classList.remove("show");
-    uploadBtn.disabled = false;
-}
+        async function uploadFile() {
+            if (!selectedFile) return;
 
-window.onload = () => {
-    const jobId = localStorage.getItem("currentJobId");
-    if (jobId) {
-        uploadBtn.disabled = true;
-        progressContainer.classList.add("show");
-        startPolling(jobId);
-    }
-};
-</script>
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            uploadBtn.disabled = true;
+            progressContainer.classList.add("show");
+            showMessage("Uploading and processing started.", "info");
+
+            try {
+                const res = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showMessage(data.detail || "Upload failed", "error");
+                    uploadBtn.disabled = false;
+                    progressContainer.classList.remove("show");
+                    return;
+                }
+
+                if (data.job_id) {
+                    localStorage.setItem("currentJobId", data.job_id);
+                    saveHistory(selectedFile);
+                    startPolling(data.job_id);
+                } else {
+                    showMessage(data.message || "Upload completed successfully.", "success");
+                    uploadBtn.disabled = false;
+                    progressContainer.classList.remove("show");
+                }
+            } catch (error) {
+                showMessage("Connection error. Please try again.", "error");
+                uploadBtn.disabled = false;
+                progressContainer.classList.remove("show");
+            }
+        }
+
+        async function startPolling(jobId) {
+            if (!jobId) {
+                cleanup();
+                return;
+            }
+
+            if (pollingInterval) clearInterval(pollingInterval);
+
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/status/${jobId}`);
+                    const data = await res.json();
+
+                    if (data.status === "processing") {
+                        showMessage("File is being processed. Please wait.", "info");
+                        return;
+                    }
+
+                    if (data.status === "success") {
+                        showMessage("Processing complete. Head to AI Buzz to explore.", "success");
+                        cleanup();
+                        return;
+                    }
+
+                    if (data.status === "failed") {
+                        showMessage(`Processing failed: ${data.message}`, "error");
+                        cleanup();
+                        return;
+                    }
+
+                    cleanup();
+                } catch (error) {
+                    console.error("Polling error:", error);
+                }
+            }, 3000);
+        }
+
+        function cleanup() {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            localStorage.removeItem("currentJobId");
+            progressContainer.classList.remove("show");
+            uploadBtn.disabled = false;
+        }
+
+        function saveHistory(file) {
+            if (!file || !file.name) return;
+            const history = JSON.parse(localStorage.getItem("documentHistory") || "[]");
+            history.unshift({
+                name: file.name,
+                type: file.type || "unknown",
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem("documentHistory", JSON.stringify(history.slice(0, 20)));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById("historyList");
+            const history = JSON.parse(localStorage.getItem("documentHistory") || "[]");
+            if (!history.length) {
+                historyList.innerHTML = "<p style='color: var(--text-secondary); margin: 0;'>No uploads yet. Use Upload & Process to add documents.</p>";
+                return;
+            }
+            historyList.innerHTML = history.map(item => {
+                const time = new Date(item.timestamp).toLocaleString();
+                return `<div style='margin-bottom: 14px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;'>
+                    <strong style='color: var(--text-primary);'>${item.name}</strong>
+                    <div style='color: var(--text-secondary); font-size: 13px;'>${item.type} · ${time}</div>
+                </div>`;
+            }).join("");
+        }
+
+        // CHAT FUNCTIONALITY
+        let sessionId = null;
+
+        sendBtn.onclick = sendMessage;
+        chatInput.onkeypress = (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+
+        function getOrCreateSessionId() {
+            sessionId = sessionStorage.getItem('EnterpriseRAG_session_id') || null;
+        }
+
+        function updateJobStatusLabel(text) {
+            const label = document.getElementById("chatStatus");
+            if (label) {
+                label.textContent = text;
+            }
+        }
+
+        async function fetchJobStatus() {
+            const jobId = localStorage.getItem("currentJobId");
+            if (!jobId) {
+                updateJobStatusLabel("No active document processing.");
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                return;
+            }
+
+            try {
+                const res = await fetch(`/status/${jobId}`);
+                const data = await res.json();
+                if (data.status === "processing") {
+                    updateJobStatusLabel(`Processing: ${data.message || "In progress"}`);
+                } else if (data.status === "success") {
+                    updateJobStatusLabel("Last upload processed successfully.");
+                    localStorage.removeItem("currentJobId");
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                } else if (data.status === "failed") {
+                    updateJobStatusLabel(`Upload failed: ${data.message}`);
+                    localStorage.removeItem("currentJobId");
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                } else {
+                    updateJobStatusLabel("No active document processing.");
+                    localStorage.removeItem("currentJobId");
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                }
+            } catch (err) {
+                updateJobStatusLabel("Unable to fetch upload status.");
+            }
+        }
+
+        function startStatusPolling() {
+            const jobId = localStorage.getItem("currentJobId");
+            if (!jobId) {
+                return;
+            }
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            fetchJobStatus();
+            pollingInterval = setInterval(fetchJobStatus, 5000);
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-${sender === 'ai' ? 'robot' : 'user'}"></i>
+                </div>
+                <div class="message-content"><div>${escapeHtml(text)}</div></div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+
+        function addTypingMessage(text) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message ai";
+            messageDiv.innerHTML = `
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content"><div class="message-text">${escapeHtml(text)}</div></div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, "user");
+            chatInput.value = "";
+            const typingDiv = addTypingMessage("AI Buzz is thinking...");
+            updateJobStatusLabel("AI Buzz is thinking...");
+
+            try {
+                await streamChatResponse(message, typingDiv);
+            } catch (error) {
+                typingDiv.querySelector('.message-text').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function streamChatResponse(message, typingDiv) {
+            const headers = { "Content-Type": "application/json" };
+            if (sessionId) {
+                headers["X-Session-ID"] = sessionId;
+            }
+
+            const controller = new AbortController();
+            const timeoutMs = 120000;
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, timeoutMs);
+
+            try {
+                const res = await fetch("/chatting", {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ message, session_id: sessionId }),
+                    signal: controller.signal,
+                });
+
+                if (!res.body) {
+                    const errorText = await res.text();
+                    const errorMsg = errorText || "Server error. Please try again later.";
+                    typingDiv.querySelector('.message-text').textContent = `Error: ${errorMsg}`;
+                    updateJobStatusLabel("Server error: please try again later.");
+                    return;
+                }
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        let eventData;
+                        try {
+                            eventData = JSON.parse(line);
+                        } catch (err) {
+                            continue;
+                        }
+
+                        if (eventData.session_id) {
+                            sessionId = eventData.session_id;
+                            sessionStorage.setItem('EnterpriseRAG_session_id', sessionId);
+                        }
+
+                        if (eventData.event === "status") {
+                            const statusText = eventData.message || "AI Buzz is thinking...";
+                            typingDiv.querySelector('.message-text').textContent = statusText;
+                            updateJobStatusLabel(statusText);
+                        }
+
+                        if (eventData.event === "answer") {
+                            typingDiv.querySelector('.message-text').innerHTML = eventData.reply || "No answer returned.";
+                        }
+
+                        if (eventData.event === "error") {
+                            typingDiv.querySelector('.message-text').textContent = `Error: ${eventData.message}`;
+                            updateJobStatusLabel("Server error: please try again later.");
+                        }
+                    }
+                }
+
+                if (buffer.trim()) {
+                    try {
+                        const eventData = JSON.parse(buffer);
+                        if (eventData.session_id) {
+                            sessionId = eventData.session_id;
+                            sessionStorage.setItem('EnterpriseRAG_session_id', sessionId);
+                        }
+                        if (eventData.event === "answer") {
+                            typingDiv.querySelector('.message-text').textContent = eventData.reply || "No answer returned.";
+                        }
+                        if (eventData.event === "error") {
+                            typingDiv.querySelector('.message-text').textContent = `Error: ${eventData.message}`;
+                            updateJobStatusLabel("Server error: please try again later.");
+                        }
+                    } catch (err) {
+                        console.warn('Stream parse error', err);
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    typingDiv.querySelector('.message-text').textContent = "Server error: please try again later.";
+                    updateJobStatusLabel("Server error: please try again later.");
+                } else {
+                    typingDiv.querySelector('.message-text').textContent = `Error: ${error.message}`;
+                    updateJobStatusLabel("Server error: please try again later.");
+                }
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        window.onload = () => {
+            renderHistory();
+            const jobId = localStorage.getItem("currentJobId");
+            if (jobId) {
+                uploadBtn.disabled = true;
+                progressContainer.classList.add("show");
+                startPolling(jobId);
+            }
+            getOrCreateSessionId();
+            startStatusPolling();
+        };
+    </script>
 </body>
 </html>

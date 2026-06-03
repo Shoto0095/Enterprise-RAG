@@ -29,7 +29,6 @@ def ingest_pdf(pdf_path, collection_name="project_kb", db_path="./chroma_db"):
 
         db = Chroma(collection_name=collection_name, embedding_function=embeddings, persist_directory=db_path)
         db.add_documents(chunks)
-        db.persist()
 
         logger.info(f" PDF '{pdf_path}' embedded & stored!")
         return True

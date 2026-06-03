@@ -4,7 +4,7 @@ RAG orchestration: retriever, prompt and chain.
 Expose `invoke(query)` and `restart_chatbot()` for callers.
 """
 
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_core.callbacks import StdOutCallbackHandler
