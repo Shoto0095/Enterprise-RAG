@@ -112,6 +112,33 @@ def invoke(query: str, session_id: str = None):
     """
     if _rag_chain is None:
         _init_rag()
-
     config = {"configurable": {"thread_id": session_id}} if session_id else None
     return _rag_chain.invoke(query, config=config)
+
+
+def invoke_stream(query: str, session_id: str = None):
+    """
+    Invoke the RAG chain with streaming output.
+    Yields chunks of the response as they are generated.
+    """
+    if _rag_chain is None:
+        _init_rag()
+    
+    config = {"configurable": {"thread_id": session_id}} if session_id else None
+    
+    # Get context from retriever
+    context_docs = _retriever.invoke(query)
+    context = "\n".join([doc.page_content for doc in context_docs])
+    
+    # Format prompt
+    formatted_prompt = prompt.format(context=context, question=query)
+    
+    # Get LLM instance and stream
+    llm = GeminiLLM(
+        model=settings.GEMINI_MODEL,
+        streaming=True,
+    )
+    
+    # Stream from LLM
+    for chunk in llm.stream(formatted_prompt):
+        yield chunk
