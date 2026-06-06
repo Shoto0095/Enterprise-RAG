@@ -2,12 +2,15 @@
 
 Provides `GeminiLLM` class for Google Gemini integration.
 """
+from time import sleep
+
 import google.generativeai as genai
 from langchain_core.language_models import LLM
-from typing import Optional, List
-
+from typing import Optional, List, Iterator
+from .logger import get_logger
 from .config import settings
 
+_logger = get_logger("llm")
 
 # Configure Gemini API key
 genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -37,6 +40,22 @@ class GeminiLLM(LLM):
             return response.text
         except Exception as e:
             _logger.exception(f"Error calling Gemini API: {e}")
+            raise
+
+    def stream(self, prompt: str) -> Iterator[str]:
+        try:
+            response = genai.GenerativeModel(self.model).generate_content(
+                prompt,
+                stream=True
+            )
+            for chunk in response:
+                if chunk.text:
+                    words = chunk.text.split(" ")
+                    for i, word in enumerate(words):
+                        yield word + (" " if i < len(words) - 1 else "")
+                        sleep(0.04)  # ~25 words/sec — tune to taste
+        except Exception as e:
+            _logger.exception(f"Error streaming from Gemini API: {e}")
             raise
 
     @property

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise RAG Project - Intelligent Document Retrieval</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
     
     <style>
         * {
@@ -14,14 +15,20 @@
         }
 
         :root {
-            --bg-primary: #0B0F19;
-            --bg-container: #161D2F;
-            --accent-cyan: #00E5FF;
-            --accent-violet: #7C4DFF;
-            --text-primary: #F1F5F9;
-            --text-secondary: #8B94A8;
-            --border-subtle: rgba(255, 255, 255, 0.05);
-            --border-accent: rgba(0, 229, 255, 0.15);
+            --canvas-black: #000000;
+            --surface-obsidian: #0a0a0a;
+            --card-charcoal: #353535;
+            --text-white: #ffffff;
+            --text-mist: #e5e5e5;
+            --text-ash: #999999;
+            --text-charcoal: #666666;
+            --brand-violet: #6e60ee;
+            --accent-lime: #03e65b;
+            --accent-yellow: #ffc533;
+            --accent-pink: #ff3386;
+            --accent-coral: #ff5d4b;
+            --accent-magenta: #d25fff;
+            --accent-blue: #33d0ff;
         }
 
         html, body {
@@ -31,155 +38,299 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: var(--text-white);
             position: relative;
+            line-height: 1.33;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* BACKGROUND GRADIENTS - Dark Room Effect */
-        body::before,
+        /* ANIMATED GRADIENT BACKGROUND */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                #000000 0%,
+                #1a0033 15%,
+                #000033 30%,
+                #001a1a 45%,
+                #1a0033 60%,
+                #000000 75%,
+                #0a0a2e 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+            z-index: -3;
+            pointer-events: none;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* PRIMARY ANIMATED ORB */
         body::after {
             content: '';
             position: fixed;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle at 30% 40%, rgba(110, 96, 238, 0.35) 0%, rgba(110, 96, 238, 0.15) 25%, transparent 70%);
+            top: -200px;
+            left: -100px;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float-orb-1 25s ease-in-out infinite;
+            z-index: -2;
             pointer-events: none;
-            z-index: 0;
         }
 
-        body::before {
-            top: -40%;
-            left: 10%;
+        @keyframes float-orb-1 {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.6;
+            }
+            25% {
+                transform: translate(100px, -80px) scale(1.2);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translate(200px, 0) scale(0.9);
+                opacity: 0.7;
+            }
+            75% {
+                transform: translate(80px, 100px) scale(1.1);
+                opacity: 0.75;
+            }
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.6;
+            }
+        }
+
+        /* ORB 2 */
+        .orb-1 {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle at 50% 50%, rgba(51, 208, 255, 0.3) 0%, rgba(51, 208, 255, 0.1) 30%, transparent 70%);
+            top: 30%;
+            right: -150px;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: float-orb-2 28s ease-in-out infinite;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        @keyframes float-orb-2 {
+            0% {
+                transform: translate(0, 0) scale(0.9);
+                opacity: 0.5;
+            }
+            25% {
+                transform: translate(-150px, 100px) scale(1.1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-200px, 0) scale(1);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translate(-100px, -80px) scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(0, 0) scale(0.9);
+                opacity: 0.5;
+            }
+        }
+
+        /* ORB 3 */
+        .orb-2 {
+            position: fixed;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(124, 77, 255, 0.08) 0%, transparent 70%);
-            filter: blur(60px);
-            animation: drift1 20s ease-in-out infinite;
+            background: radial-gradient(circle at 40% 60%, rgba(110, 96, 238, 0.25) 0%, rgba(110, 96, 238, 0.08) 35%, transparent 70%);
+            bottom: -100px;
+            left: 10%;
+            border-radius: 50%;
+            filter: blur(90px);
+            animation: float-orb-3 30s ease-in-out infinite;
+            z-index: -2;
+            pointer-events: none;
         }
 
-        body::after {
-            top: 20%;
-            right: 5%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
-            filter: blur(60px);
-            animation: drift2 25s ease-in-out infinite;
+        @keyframes float-orb-3 {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: translate(80px, -100px) scale(1.15);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(150px, -50px) scale(0.95);
+                opacity: 0.5;
+            }
+            75% {
+                transform: translate(60px, 80px) scale(1.1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.4;
+            }
         }
 
-        @keyframes drift1 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, -30px); }
+        /* ORB 4 */
+        .orb-3 {
+            position: fixed;
+            width: 750px;
+            height: 750px;
+            background: radial-gradient(circle at 60% 40%, rgba(51, 208, 255, 0.28) 0%, rgba(51, 208, 255, 0.1) 28%, transparent 70%);
+            bottom: 10%;
+            right: -200px;
+            border-radius: 50%;
+            filter: blur(110px);
+            animation: float-orb-4 32s ease-in-out infinite;
+            z-index: -2;
+            pointer-events: none;
         }
 
-        @keyframes drift2 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-40px, 40px); }
-        }
-
-        /* Additional background gradient layer */
-        body > * {
-            position: relative;
-            z-index: 1;
+        @keyframes float-orb-4 {
+            0% {
+                transform: translate(0, 0) scale(1.1);
+                opacity: 0.55;
+            }
+            25% {
+                transform: translate(-120px, 90px) scale(0.95);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-250px, 50px) scale(1.05);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translate(-150px, -100px) scale(1.15);
+                opacity: 0.75;
+            }
+            100% {
+                transform: translate(0, 0) scale(1.1);
+                opacity: 0.55;
+            }
         }
 
         .viewport {
             min-height: 100vh;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, #0D1117 100%);
+            background: transparent;
+            position: relative;
         }
 
-        /* NAVBAR */
+        /* NAVBAR - Minimal floating bar */
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 90px;
-            background: rgba(11, 15, 25, 0.7);
+            height: 80px;
+            background: rgba(10, 10, 10, 0.4);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 70px;
+            padding: 0 60px;
             z-index: 999;
+            border-bottom: 1px solid rgba(229, 229, 229, 0.06);
+            box-shadow: 0 0 40px rgba(110, 96, 238, 0.05);
         }
 
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--text-primary);
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-white);
+            font-family: 'Inter', sans-serif;
         }
 
         .navbar-brand i {
-            font-size: 28px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 20px;
+            color: var(--brand-violet);
         }
 
         .nav-tabs {
             display: flex;
-            gap: 60px;
+            gap: 40px;
             list-style: none;
         }
 
         .nav-tab {
             cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            color: var(--text-secondary);
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            color: var(--text-ash);
+            transition: all 250ms ease;
             padding: 8px 0;
             position: relative;
             display: flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid transparent;
-            padding: 8px 12px;
-            border-radius: 6px;
+            border: none;
+            background: transparent;
         }
 
         .nav-tab:hover {
-            color: var(--accent-cyan);
-            border-color: var(--border-accent);
-            background: rgba(0, 229, 255, 0.03);
+            color: var(--text-white);
         }
 
         .nav-tab.active {
-            color: var(--accent-cyan);
-            border-color: var(--border-accent);
-            background: rgba(0, 229, 255, 0.05);
+            color: var(--text-white);
+            background: var(--brand-violet);
+            padding: 8px 20px;
+            border-radius: 60px;
+            box-shadow: 0 0 24px rgba(110, 96, 238, 0.45);
         }
 
         /* MAIN CONTAINER */
         .main {
-            margin-top: 90px;
-            min-height: calc(100vh - 90px);
-            padding: 100px 70px;
-            max-width: 1600px;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+            padding: 100px 60px;
+            max-width: 1440px;
             margin-left: auto;
             margin-right: auto;
         }
 
         .page {
             display: none;
-            animation: pageTransition 500ms cubic-bezier(0.4, 0, 0.2, 1);
+            animation: pageIn 500ms ease;
         }
 
         .page.active {
             display: block;
         }
 
-        @keyframes pageTransition {
+        @keyframes pageIn {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -187,10 +338,48 @@
             }
         }
 
-        /* UPLOAD PAGE - Asymmetric Bento Layout */
+        /* TYPOGRAPHY SYSTEM */
+        h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 90px;
+            font-weight: 900;
+            line-height: 0.85;
+            letter-spacing: -0.02em;
+            color: var(--text-white);
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 0.9;
+            letter-spacing: -0.01em;
+            color: var(--text-white);
+            margin-bottom: 24px;
+        }
+
+        h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-white);
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-white);
+            line-height: 1.6;
+            letter-spacing: 0;
+        }
+
+        /* UPLOAD PAGE */
         .upload-section {
             display: grid;
-            grid-template-columns: 1fr 1.4fr;
+            grid-template-columns: 1fr 1.2fr;
             gap: 80px;
             align-items: start;
         }
@@ -202,33 +391,31 @@
         }
 
         .upload-hero h1 {
-            font-size: 56px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.15;
-            color: var(--text-primary);
+            color: var(--brand-violet);
         }
 
-        .upload-hero p {
-            font-size: 17px;
-            font-weight: 400;
-            letter-spacing: 0.01em;
-            color: var(--text-secondary);
+        .upload-hero > p {
+            font-size: 14px;
+            color: var(--text-ash);
             line-height: 1.7;
         }
 
+        /* FEATURE CARDS GRID */
         .features-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 32px;
+            gap: 12px;
         }
 
         .feature-card {
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 28px;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 250ms ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
             position: relative;
             overflow: hidden;
         }
@@ -237,80 +424,62 @@
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 10px;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(110, 96, 238, 0.1), transparent);
+            transition: left 500ms ease;
         }
 
         .feature-card:hover {
-            border-color: var(--border-accent);
-            background: rgba(22, 29, 47, 0.8);
+            border-color: rgba(229, 229, 229, 0.15);
+            background: rgba(53, 53, 53, 0.8);
+            box-shadow: 0 0 20px rgba(110, 96, 238, 0.1);
         }
 
         .feature-card:hover::before {
-            opacity: 1;
+            left: 100%;
         }
 
-        .feature-inner {
+        .feature-text {
             position: relative;
             z-index: 1;
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
         }
 
         .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(0, 229, 255, 0.08);
-            border: 1px solid var(--border-accent);
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            background: var(--brand-violet);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-white);
+            font-size: 18px;
             flex-shrink: 0;
-            color: var(--accent-cyan);
-            font-size: 22px;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .feature-card:hover .feature-icon {
-            background: rgba(0, 229, 255, 0.12);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
         }
 
         .feature-text h3 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: -0.01em;
             margin-bottom: 6px;
-            color: var(--text-primary);
         }
 
         .feature-text p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            letter-spacing: 0.01em;
+            font-size: 13px;
             margin: 0;
-            line-height: 1.5;
         }
 
+        /* UPLOAD AREA */
         .upload-area {
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 80px 40px;
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            border-radius: 8px;
+            padding: 60px 40px;
             text-align: center;
             cursor: pointer;
-            background: var(--bg-container);
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--card-charcoal);
+            transition: all 250ms ease;
             position: relative;
+            margin-bottom: 24px;
             overflow: hidden;
-            margin-bottom: 32px;
         }
 
         .upload-area::before {
@@ -320,14 +489,16 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(124, 77, 255, 0.08) 0%, transparent 100%);
+            background: radial-gradient(circle at center, rgba(110, 96, 238, 0.1) 0%, transparent 70%);
             opacity: 0;
-            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 250ms ease;
+            pointer-events: none;
         }
 
         .upload-area:hover {
-            border-color: var(--border-accent);
-            background: rgba(22, 29, 47, 0.8);
+            border-color: rgba(229, 229, 229, 0.15);
+            background: rgba(53, 53, 53, 0.8);
+            box-shadow: 0 0 30px rgba(110, 96, 238, 0.12);
         }
 
         .upload-area:hover::before {
@@ -335,46 +506,39 @@
         }
 
         .upload-area.dragover {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.05);
+            border-color: var(--brand-violet);
+            background: rgba(110, 96, 238, 0.08);
+            box-shadow: 0 0 40px rgba(110, 96, 238, 0.2);
         }
 
         .upload-area.dragover::before {
             opacity: 1;
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, transparent 100%);
         }
 
         .upload-icon {
-            font-size: 72px;
-            color: var(--accent-cyan);
-            margin-bottom: 24px;
-            opacity: 0.8;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .upload-area:hover .upload-icon {
-            opacity: 1;
-            transform: scale(1.08);
-        }
-
-        .upload-text {
+            font-size: 56px;
+            color: var(--brand-violet);
+            margin-bottom: 20px;
+            opacity: 0.9;
+            transition: all 250ms ease;
+            filter: drop-shadow(0 0 10px rgba(110, 96, 238, 0.3));
             position: relative;
             z-index: 1;
         }
 
+        .upload-area:hover .upload-icon {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 20px rgba(110, 96, 238, 0.5));
+        }
+
         .upload-text h2 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 6px;
         }
 
         .upload-text p {
-            color: var(--text-secondary);
-            margin: 0;
-            font-size: 15px;
-            letter-spacing: 0.01em;
+            color: var(--text-ash);
+            font-size: 13px;
         }
 
         #fileInput {
@@ -382,18 +546,17 @@
         }
 
         .file-info {
-            background: var(--bg-container);
-            border: 1px solid var(--border-accent);
-            padding: 16px 24px;
+            background: var(--card-charcoal);
+            border: 1px solid rgba(110, 96, 238, 0.3);
+            padding: 14px 20px;
             border-radius: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             display: none;
             align-items: center;
             gap: 12px;
-            color: var(--accent-cyan);
+            color: var(--brand-violet);
             font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.01em;
+            font-size: 13px;
         }
 
         .file-info.show {
@@ -401,75 +564,23 @@
         }
 
         .file-info i {
-            font-size: 18px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 16px;
-            margin-top: 32px;
-        }
-
-        button {
-            padding: 16px 40px;
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: 0.02em;
-            background: var(--bg-container);
-            color: var(--text-primary);
-        }
-
-        .btn-upload {
-            flex: 1;
-            background: linear-gradient(135deg, var(--accent-cyan), rgba(0, 229, 255, 0.8));
-            color: #000;
-            border-color: var(--accent-cyan);
-            font-weight: 800;
-        }
-
-        .btn-upload:hover:not(:disabled) {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .btn-upload:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-clear {
-            flex: 1;
-            display: none;
-            background: var(--bg-container);
-            border-color: var(--border-accent);
-            color: var(--accent-cyan);
-        }
-
-        .btn-clear:hover:not(:disabled) {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.08);
+            font-size: 16px;
         }
 
         .status-message {
-            padding: 16px 24px;
+            padding: 14px 20px;
             border-radius: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             display: none;
-            font-size: 15px;
+            font-size: 13px;
             border: 1px solid;
-            letter-spacing: 0.01em;
-            animation: slideInDown 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideDown 300ms ease;
         }
 
-        @keyframes slideInDown {
+        @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-16px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
@@ -482,26 +593,26 @@
         }
 
         .status-message.success {
-            background: rgba(16, 185, 129, 0.05);
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(3, 230, 91, 0.08);
+            color: var(--accent-lime);
+            border-color: rgba(3, 230, 91, 0.2);
         }
 
         .status-message.error {
-            background: rgba(239, 68, 68, 0.05);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(255, 93, 75, 0.08);
+            color: var(--accent-coral);
+            border-color: rgba(255, 93, 75, 0.2);
         }
 
         .status-message.info {
-            background: rgba(0, 229, 255, 0.05);
-            color: var(--accent-cyan);
-            border-color: var(--border-accent);
+            background: rgba(110, 96, 238, 0.08);
+            color: var(--brand-violet);
+            border-color: rgba(110, 96, 238, 0.2);
         }
 
         .progress-container {
             display: none;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .progress-container.show {
@@ -510,16 +621,16 @@
 
         .progress-bar {
             width: 100%;
-            height: 2px;
-            background-color: var(--border-subtle);
-            border-radius: 2px;
+            height: 1px;
+            background-color: rgba(229, 229, 229, 0.06);
+            border-radius: 1px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
-            animation: progress 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            background: var(--brand-violet);
+            animation: progress 2s ease-in-out infinite;
         }
 
         @keyframes progress {
@@ -528,42 +639,98 @@
             100% { width: 100%; }
         }
 
+        /* BUTTON SYSTEM */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        button {
+            padding: 10px 27px;
+            border: 1px solid;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 250ms ease;
+            letter-spacing: 0.01em;
+            background: transparent;
+            color: var(--text-white);
+            font-family: 'Inter', sans-serif;
+            border-color: rgba(229, 229, 229, 0.06);
+        }
+
+        button:hover:not(:disabled) {
+            border-color: rgba(229, 229, 229, 0.15);
+            background: rgba(229, 229, 229, 0.05);
+        }
+
+        .btn-upload {
+            flex: 1;
+            background: var(--text-white);
+            color: var(--surface-obsidian);
+            border-color: var(--text-white);
+            font-weight: 600;
+        }
+
+        .btn-upload:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .btn-upload:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            flex: 1;
+            display: none;
+            color: var(--brand-violet);
+            border-color: rgba(110, 96, 238, 0.3);
+            transition: all 250ms ease;
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            border-color: var(--brand-violet);
+            background: rgba(110, 96, 238, 0.08);
+            box-shadow: 0 0 15px rgba(110, 96, 238, 0.2);
+        }
+
         /* CHAT PAGE */
         .chat-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 90px - 200px);
+            height: calc(100vh - 80px - 200px);
             max-width: 1000px;
             margin: 0 auto;
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px;
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            border-radius: 8px;
             overflow: hidden;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(110, 96, 238, 0.05);
+            transition: all 250ms ease;
         }
 
         .chat-container:hover {
-            border-color: var(--border-accent);
+            border-color: rgba(229, 229, 229, 0.12);
+            box-shadow: 0 0 30px rgba(110, 96, 238, 0.1);
         }
 
         .chat-header {
             padding: 40px;
-            border-bottom: 1px solid var(--border-subtle);
-            background: rgba(0, 229, 255, 0.02);
+            border-bottom: 1px solid rgba(229, 229, 229, 0.06);
         }
 
         .chat-header h2 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: 24px;
             margin-bottom: 8px;
-            color: var(--text-primary);
         }
 
         .chat-header p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            letter-spacing: 0.01em;
+            color: var(--text-ash);
+            font-size: 13px;
         }
 
         .chat-messages {
@@ -572,7 +739,7 @@
             padding: 40px;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 24px;
         }
 
         .chat-messages::-webkit-scrollbar {
@@ -584,24 +751,24 @@
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: var(--border-accent);
+            background: rgba(229, 229, 229, 0.1);
             border-radius: 3px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-cyan);
+            background: rgba(229, 229, 229, 0.15);
         }
 
         .message {
             display: flex;
-            gap: 16px;
-            animation: messageAppear 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 12px;
+            animation: messageAppear 300ms ease;
         }
 
         @keyframes messageAppear {
             from {
                 opacity: 0;
-                transform: translateY(16px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
@@ -614,110 +781,105 @@
         }
 
         .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             flex-shrink: 0;
-            border: 1px solid;
+            border: 1px solid rgba(229, 229, 229, 0.06);
         }
 
         .message.ai .message-avatar {
-            background: rgba(0, 229, 255, 0.1);
-            border-color: var(--border-accent);
-            color: var(--accent-cyan);
+            background: var(--brand-violet);
+            border-color: rgba(110, 96, 238, 0.3);
+            color: var(--text-white);
         }
 
         .message.user .message-avatar {
-            background: rgba(124, 77, 255, 0.1);
-            border-color: rgba(124, 77, 255, 0.3);
-            color: var(--accent-violet);
+            background: rgba(110, 96, 238, 0.1);
+            border-color: rgba(110, 96, 238, 0.2);
+            color: var(--brand-violet);
         }
 
         .message-content {
             max-width: 65%;
-            padding: 16px 20px;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
             word-wrap: break-word;
             border: 1px solid;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .message.ai .message-content {
-            background: rgba(0, 229, 255, 0.05);
-            border-color: var(--border-accent);
-            color: var(--text-primary);
+            background: rgba(53, 53, 53, 0.5);
+            border-color: rgba(229, 229, 229, 0.06);
+            color: var(--text-white);
         }
 
         .message.user .message-content {
-            background: rgba(124, 77, 255, 0.1);
-            border-color: rgba(124, 77, 255, 0.3);
-            color: var(--text-primary);
+            background: rgba(110, 96, 238, 0.1);
+            border-color: rgba(110, 96, 238, 0.2);
+            color: var(--text-white);
         }
 
         .chat-input-area {
-            padding: 32px 40px;
-            border-top: 1px solid var(--border-subtle);
-            background: rgba(0, 229, 255, 0.02);
+            padding: 24px 40px;
+            border-top: 1px solid rgba(229, 229, 229, 0.06);
         }
 
         .input-wrapper {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         #chatInput {
             flex: 1;
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            padding: 14px 18px;
+            background: var(--surface-obsidian);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            padding: 10px 14px;
             border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 15px;
+            color: var(--text-white);
+            font-size: 14px;
             font-family: inherit;
-            letter-spacing: 0.01em;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 250ms ease;
         }
 
         #chatInput:focus {
             outline: none;
-            border-color: var(--border-accent);
-            background: rgba(0, 229, 255, 0.05);
+            border-color: rgba(229, 229, 229, 0.15);
+            background: rgba(10, 10, 10, 0.8);
         }
 
         #chatInput::placeholder {
-            color: var(--text-secondary);
+            color: var(--text-charcoal);
         }
 
         .btn-send {
-            background: var(--bg-container);
-            color: var(--accent-cyan);
-            padding: 14px 24px;
-            border: 1px solid var(--border-accent);
+            background: transparent;
+            color: var(--brand-violet);
+            padding: 10px 16px;
+            border: 1px solid rgba(110, 96, 238, 0.3);
             border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            letter-spacing: 0.02em;
+            gap: 6px;
         }
 
         .btn-send:hover {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.08);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+            border-color: var(--brand-violet);
+            background: rgba(110, 96, 238, 0.08);
         }
 
-        /* ABOUT PAGE - Premium Asymmetric Layout */
+        /* ABOUT PAGE */
         .about-grid {
             display: grid;
-            grid-template-columns: 1fr 1.3fr;
+            grid-template-columns: 1fr 1.2fr;
             gap: 80px;
             align-items: start;
         }
@@ -729,18 +891,13 @@
         }
 
         .about-intro h1 {
-            font-size: 52px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.15;
-            color: var(--text-primary);
+            margin-bottom: 20px;
         }
 
         .about-intro > p {
-            font-size: 16px;
-            color: var(--text-secondary);
-            line-height: 1.8;
-            letter-spacing: 0.01em;
+            font-size: 14px;
+            color: var(--text-ash);
+            line-height: 1.7;
         }
 
         .social-links {
@@ -750,40 +907,40 @@
         }
 
         .social-btn {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 8px;
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            color: var(--text-ash);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 250ms ease;
             text-decoration: none;
         }
 
         .social-btn:hover {
-            background: rgba(0, 229, 255, 0.1);
-            border-color: var(--border-accent);
-            color: var(--accent-cyan);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+            background: rgba(110, 96, 238, 0.1);
+            border-color: var(--brand-violet);
+            color: var(--brand-violet);
+            box-shadow: 0 0 16px rgba(110, 96, 238, 0.2);
         }
 
         .about-cards {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 24px;
+            gap: 20px;
         }
 
         .card {
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            padding: 32px;
-            border-radius: 10px;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            padding: 28px;
+            border-radius: 8px;
+            transition: all 250ms ease;
             position: relative;
             overflow: hidden;
         }
@@ -791,17 +948,20 @@
         .card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(110, 96, 238, 0.15) 0%, transparent 70%);
             opacity: 0;
-            transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 250ms ease;
+            pointer-events: none;
         }
 
         .card:hover {
-            border-color: var(--border-accent);
+            border-color: rgba(229, 229, 229, 0.12);
+            background: rgba(53, 53, 53, 0.8);
+            box-shadow: 0 0 25px rgba(110, 96, 238, 0.08);
         }
 
         .card:hover::before {
@@ -814,39 +974,32 @@
         }
 
         .card h3 {
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            margin-bottom: 12px;
-            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 12px;
         }
 
         .card i {
-            color: var(--accent-cyan);
-            font-size: 20px;
+            color: var(--brand-violet);
+            font-size: 18px;
         }
 
         .card p {
-            color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.7;
             margin-bottom: 16px;
-            letter-spacing: 0.01em;
         }
 
         .card a {
-            color: var(--accent-cyan);
+            color: var(--brand-violet);
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 13px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            letter-spacing: 0.02em;
+            transition: all 250ms ease;
         }
 
         .card a:hover {
@@ -854,157 +1007,215 @@
         }
 
         .skills-section {
-            background: var(--bg-container);
-            border: 1px solid var(--border-subtle);
-            padding: 40px;
-            border-radius: 10px;
-            margin-top: 50px;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            padding: 32px;
+            border-radius: 8px;
+            margin-top: 40px;
+            transition: all 250ms ease;
         }
 
         .skills-section:hover {
-            border-color: var(--border-accent);
+            border-color: rgba(229, 229, 229, 0.12);
+            box-shadow: 0 0 20px rgba(110, 96, 238, 0.08);
         }
 
         .skills-section h3 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 32px;
-            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 24px;
         }
 
         .skill-category {
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
 
         .skill-category h4 {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.08em;
-            color: var(--accent-cyan);
-            margin-bottom: 14px;
+            color: var(--brand-violet);
+            margin-bottom: 12px;
             text-transform: uppercase;
         }
 
         .skill-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .skill-tag {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-accent);
-            color: var(--accent-cyan);
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 13px;
+            background: transparent;
+            border: 1px solid rgba(110, 96, 238, 0.3);
+            color: var(--brand-violet);
+            padding: 6px 12px;
+            border-radius: 60px;
+            font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.02em;
-            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 250ms ease;
         }
 
         .skill-tag:hover {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.1);
-            box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+            border-color: var(--brand-violet);
+            background: rgba(110, 96, 238, 0.15);
+            box-shadow: 0 0 20px rgba(110, 96, 238, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* NAVIGATION PAGE */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .nav-intro {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+
+        .nav-intro h1 {
+            margin-bottom: 20px;
+        }
+
+        .nav-intro > p {
+            font-size: 14px;
+            color: var(--text-ash);
+            line-height: 1.7;
+        }
+
+        .history-card {
+            background: var(--card-charcoal);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            padding: 28px;
+            border-radius: 8px;
+            transition: all 250ms ease;
+        }
+
+        .history-card:hover {
+            box-shadow: 0 0 20px rgba(110, 96, 238, 0.08);
+            border-color: rgba(229, 229, 229, 0.12);
+        }
+
+        .history-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(10, 10, 10, 0.5);
+            border: 1px solid rgba(229, 229, 229, 0.06);
+            border-radius: 6px;
+            transition: all 250ms ease;
+        }
+
+        .history-item:hover {
+            border-color: rgba(110, 96, 238, 0.2);
+            background: rgba(10, 10, 10, 0.7);
+        }
+
+        .history-item strong {
+            color: var(--text-white);
+            display: block;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .history-item div {
+            color: var(--text-charcoal);
+            font-size: 12px;
+        }
+
+        .history-empty {
+            color: var(--text-charcoal);
+            font-size: 13px;
         }
 
         /* RESPONSIVE */
         @media (max-width: 1200px) {
             .navbar {
-                padding: 0 50px;
+                padding: 0 40px;
             }
 
             .main {
-                padding: 80px 50px;
+                padding: 80px 40px;
             }
 
-            .upload-section {
+            .upload-section,
+            .about-grid,
+            .nav-grid {
                 grid-template-columns: 1fr;
                 gap: 60px;
             }
 
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 60px;
-            }
-
-            .upload-hero h1 {
-                font-size: 44px;
-            }
-
-            .about-intro h1 {
-                font-size: 44px;
+            h1 {
+                font-size: 64px;
             }
         }
 
         @media (max-width: 768px) {
             .navbar {
-                padding: 0 30px;
-                height: 80px;
+                padding: 0 24px;
+                height: 70px;
             }
 
             .navbar-brand {
-                font-size: 24px;
-                gap: 12px;
+                font-size: 14px;
             }
 
             .nav-tabs {
-                gap: 25px;
-                font-size: 13px;
+                gap: 20px;
+                font-size: 12px;
+            }
+
+            .nav-tab.active {
+                padding: 6px 14px;
             }
 
             .main {
-                margin-top: 80px;
-                padding: 60px 30px;
+                margin-top: 70px;
+                padding: 60px 24px;
             }
 
-            .upload-hero h1 {
-                font-size: 32px;
+            h1 {
+                font-size: 44px;
             }
 
-            .about-intro h1 {
-                font-size: 32px;
+            h2 {
+                font-size: 28px;
             }
 
             .message-content {
-                max-width: 85%;
+                max-width: 80%;
             }
 
             .chat-container {
-                height: calc(100vh - 80px - 150px);
+                height: calc(100vh - 70px - 120px);
             }
 
-            .features-grid {
-                gap: 20px;
+            .button-group {
+                flex-direction: column;
             }
 
-            .feature-card {
-                padding: 20px;
-            }
-
-            .upload-area {
-                padding: 60px 30px;
+            .button-group button {
+                width: 100%;
             }
         }
 
         @media (max-width: 480px) {
             .navbar {
-                padding: 0 20px;
+                padding: 0 16px;
             }
 
             .main {
-                padding: 50px 20px;
+                padding: 50px 16px;
             }
 
             .nav-tabs {
-                gap: 15px;
+                gap: 12px;
             }
 
-            .upload-section {
-                gap: 40px;
+            h1 {
+                font-size: 32px;
             }
 
             .message-content {
@@ -1012,25 +1223,38 @@
             }
 
             button {
-                padding: 14px 24px;
-                font-size: 14px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+
+            .upload-area {
+                padding: 40px 20px;
+            }
+
+            .upload-icon {
+                font-size: 40px;
             }
         }
     </style>
 </head>
 
 <body>
+    <!-- ANIMATED FLOATING ORBS -->
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+    <div class="orb-3"></div>
+
     <div class="viewport">
         <!-- NAVBAR -->
         <nav class="navbar">
             <div class="navbar-brand">
                 <i class="fas fa-layer-group"></i>
-                Enterprise RAG Project
+                Enterprise RAG
             </div>
             <ul class="nav-tabs">
                 <li class="nav-tab active" onclick="switchPage('upload', event)">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    Upload & Process
+                    Upload
                 </li>
                 <li class="nav-tab" onclick="switchPage('chat', event)">
                     <i class="fas fa-comments"></i>
@@ -1053,35 +1277,29 @@
             <div id="upload" class="page active">
                 <div class="upload-section">
                     <div class="upload-hero">
-                        <h1>Enterprise RAG Intelligence</h1>
-                        <p>Upload videos, PDFs, or images and turn them into searchable knowledge with AI-powered retrieval and chatbot insight.Analyze thousands of pages of content in seconds. Upload videos, PDFs, or images to build a searchable AI knowledge repository powered by semantic retrieval, contextual understanding, and grounded responses. If you need assistance using the platform, head to the Navigation tab for a detailed workflow guide.</p>
+                        <h1>Enterprise<br>RAG</h1>
+                        <p>Transform documents into searchable intelligence. Upload videos, PDFs, or images and interact with AI-powered retrieval. Analyze thousands of pages in seconds with semantic understanding and grounded responses.</p>
                         
                         <div class="features-grid">
                             <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-file-upload"></i></div>
-                                    <div class="feature-text">
-                                        <h3>Multi-format Uploads</h3>
-                                        <p>Ingest video, PDF, or image files in one platform.</p>
-                                    </div>
+                                <div class="feature-icon"><i class="fas fa-file-upload"></i></div>
+                                <div class="feature-text">
+                                    <h3>Multi-format</h3>
+                                    <p>Video, PDF, image</p>
                                 </div>
                             </div>
                             <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-search"></i></div>
-                                    <div class="feature-text">
-                                        <h3>Semantic Search</h3>
-                                        <p>Find answers from your documents with vector retrieval.</p>
-                                    </div>
+                                <div class="feature-icon"><i class="fas fa-search"></i></div>
+                                <div class="feature-text">
+                                    <h3>Semantic Search</h3>
+                                    <p>Vector retrieval</p>
                                 </div>
                             </div>
                             <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-history"></i></div>
-                                    <div class="feature-text">
-                                        <h3>Document History</h3>
-                                        <p>Track your uploads and revisit processed content quickly.</p>
-                                    </div>
+                                <div class="feature-icon"><i class="fas fa-search"></i></div>
+                                <div class="feature-text">
+                                    <h3>BM25 + Vector Search</h3>
+                                    <p>Hybrid search approach to get precise results</p>
                                 </div>
                             </div>
                         </div>
@@ -1091,8 +1309,8 @@
                         <div class="upload-area" id="uploadArea">
                             <div class="upload-icon"><i class="fas fa-file-import"></i></div>
                             <div class="upload-text">
-                                <h2>Drop documents here</h2>
-                                <p>or click to browse videos, PDFs, or images</p>
+                                <h2>Drop documents</h2>
+                                <p>or click to browse</p>
                             </div>
                             <input type="file" id="fileInput" accept="video/*,application/pdf,image/*">
                         </div>
@@ -1122,25 +1340,23 @@
             <div id="chat" class="page">
                 <div class="chat-container">
                     <div class="chat-header">
-                        <div>
-                            <h2>AI Buzz</h2>
-                            <p>Ask questions about uploaded videos, PDFs, or images and get grounded insights.</p>
-                            <p id="chatStatus" style="font-size: 13px; opacity: 0.8; margin-top: 6px;">No active document processing.</p>
-                        </div>
+                        <h2>AI Buzz</h2>
+                        <p>Ask questions about your uploaded documents and get precise, context-aware answers.</p>
+                        <p id="chatStatus" style="font-size: 12px; opacity: 0.7; margin-top: 6px;">No active document processing.</p>
                     </div>
 
                     <div class="chat-messages" id="chatMessages">
                         <div class="message ai">
                             <div class="message-avatar"><i class="fas fa-robot"></i></div>
                             <div class="message-content">
-                                Welcome to AI Buzz. Upload documents and I will analyze them. Ask questions about your content, and I will provide precise, context-aware answers.
+                                Welcome to AI Buzz. Upload documents and ask me anything. I'll provide precise, context-aware answers from your content.
                             </div>
                         </div>
                     </div>
 
                     <div class="chat-input-area">
                         <div class="input-wrapper">
-                            <input type="text" id="chatInput" placeholder="Share your thoughts...">
+                            <input type="text" id="chatInput" placeholder="Ask anything...">
                             <button class="btn-send" id="sendBtn">
                                 <i class="fas fa-arrow-right"></i>
                             </button>
@@ -1151,63 +1367,106 @@
 
             <!-- NAVIGATION PAGE -->
             <div id="navigation" class="page">
-                <div class="about-grid">
-                    <div class="about-intro">
-                        <h1>Navigation</h1>
-                        <p>Use this section to move between the core application flows and review your document history.</p>
+                <div class="nav-grid">
+                    <div class="nav-intro">
+                        <div>
+                            <h1>Navigate</h1>
+                            <p>Your enterprise knowledge hub. Ingest documents, videos, and PDFs — then ask questions and get instant AI-powered answers across your entire content library.</p>
+                        </div>
+
+                        <!-- Quick access cards -->
                         <div class="features-grid">
-                            <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-upload"></i></div>
-                                    <div class="feature-text">
-                                        <h3>Upload & Process</h3>
-                                        <p>Upload videos, PDFs, or images for processing and ingestion.</p>
-                                    </div>
+                            <div class="feature-card" onclick="showPage('upload')" style="cursor:pointer;">
+                                <div class="feature-icon"><i class="fas fa-upload"></i></div>
+                                <div class="feature-text">
+                                    <h3>Upload & Ingest</h3>
+                                    <p>Drop in PDFs, videos, or documents. The pipeline extracts, chunks, and indexes content automatically.</p>
                                 </div>
                             </div>
-                            <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
-                                    <div class="feature-text">
-                                        <h3>AI Buzz</h3>
-                                        <p>Ask questions and interact with the RAG chatbot over your documents.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-inner">
-                                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
-                                    <div class="feature-text">
-                                        <h3>Document History</h3>
-                                        <p>Review a list of your recent file uploads and their types.</p>
-                                    </div>
+                            <div class="feature-card" onclick="showPage('chat')" style="cursor:pointer;">
+                                <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                                <div class="feature-text">
+                                    <h3>AI Buzz</h3>
+                                    <p>Ask natural-language questions across your ingested library. Streamed word-by-word responses powered by Gemini.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Right column -->
                     <div class="about-cards">
+
+                        <!-- How it works -->
                         <div class="card">
                             <div class="card-inner">
-                                <h3>
-                                    <i class="fas fa-history"></i>
-                                    Document History
-                                </h3>
-                                <p>Track your uploads in the app. History is stored locally in your browser so you can revisit recent file activity quickly.</p>
-                                <div id="historyList"></div>
+                                <h3><i class="fas fa-bolt"></i> How it works</h3>
+                                <p>Upload any document or video. The pipeline transcribes, chunks, and embeds your content into a vector store. When you ask a question, the most relevant chunks are retrieved and passed to the LLM for a grounded, accurate answer.</p>
+                                <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+                                    <div class="history-item">
+                                        <strong><i class="fas fa-upload" style="color:var(--brand-violet); margin-right:8px;"></i> Upload</strong>
+                                        <div>PDF, MP4, AVI, MOV, MKV, WMV, FLV</div>
+                                    </div>
+                                    <div class="history-item">
+                                        <strong><i class="fas fa-cut" style="color:var(--brand-violet); margin-right:8px;"></i> Chunk & Embed</strong>
+                                        <div>Content is split and vectorized for semantic search</div>
+                                    </div>
+                                    <div class="history-item">
+                                        <strong><i class="fas fa-database" style="color:var(--brand-violet); margin-right:8px;"></i> Vector Store</strong>
+                                        <div>Embeddings indexed for fast retrieval</div>
+                                    </div>
+                                    <div class="history-item">
+                                        <strong><i class="fas fa-robot" style="color:var(--brand-violet); margin-right:8px;"></i> LLM Answer</strong>
+                                        <div>Gemini generates a cited, streamed response</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Supported formats -->
+                        <div class="card">
+                            <div class="card-inner">
+                                <h3><i class="fas fa-file-alt"></i> Supported formats</h3>
+                                <p>Ingest a wide range of file types out of the box.</p>
+                                <div class="skills-section" style="margin-top:16px; padding:20px;">
+                                    <div class="skill-category">
+                                        <h4>Documents</h4>
+                                        <div class="skill-tags">
+                                            <span class="skill-tag">PDF</span>
+                                        </div>
+                                    </div>
+                                    <div class="skill-category">
+                                        <h4>Video</h4>
+                                        <div class="skill-tags">
+                                            <span class="skill-tag">MP4</span>
+                                            <span class="skill-tag">AVI</span>
+                                            <span class="skill-tag">MOV</span>
+                                            <span class="skill-tag">MKV</span>
+                                            <span class="skill-tag">FLV</span>
+                                            <span class="skill-tag">WMV</span>
+                                        </div>
+                                    </div>
+                                    <div class="skill-category" style="margin-bottom:0;">
+                                        <h4>Coming soon</h4>
+                                        <div class="skill-tags">
+                                            <span class="skill-tag">DOCX</span>
+                                            <span class="skill-tag">PPTX</span>
+                                            <span class="skill-tag">CSV</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-
             <!-- ABOUT PAGE -->
             <div id="about" class="page">
                 <div class="about-grid">
                     <div class="about-intro">
-                        <h1>Pratyush Mathur</h1>
-                        <p>AI/ML Engineer & Builder focused on enterprise-grade AI systems with LangChain, LangGraph, PyTorch, and Azure.</p>
-                        <p>Currently working as an AI/ML Developer at MegaMax Services. I build document intelligence, RAG chatbots, multi-modal knowledge assistants, and production-ready AI automation pipelines.</p>
+                        <h1>Pratyush<br>Mathur</h1>
+                        <p>AI/ML Engineer building production-grade AI systems with LangChain, LangGraph, PyTorch, and Azure.</p>
+                        <p>Currently an AI/ML Developer at MegaMax Services, crafting document intelligence, RAG chatbots, and enterprise AI automation.</p>
                         
                         <div class="social-links">
                             <a href="https://linkedin.com/in/pratyush-mathur-35a1a2251" class="social-btn" title="LinkedIn" target="_blank" rel="noopener noreferrer">
@@ -1227,36 +1486,21 @@
 
                     <div class="about-cards">
                         <div class="card">
-                            <div class="card-inner">
-                                <h3>
-                                    <i class="fas fa-briefcase"></i>
-                                    Experience
-                                </h3>
-                                <p>AI/ML Developer at MegaMax Services since June 2025, building enterprise AI solutions for document intelligence, HRMS chatbots, and automation.</p>
-                                <a href="https://pratyushmathur.vercel.app/asset/resume.pdf" target="_blank" rel="noopener noreferrer">View Resume →</a>
-                            </div>
+                            <h3><i class="fas fa-briefcase"></i> Experience</h3>
+                            <p>AI/ML Developer at MegaMax Services since June 2025, building document intelligence and enterprise RAG solutions.</p>
+                            <a href="https://pratyushmathur.vercel.app/asset/resume.pdf" target="_blank" rel="noopener noreferrer">View Resume →</a>
                         </div>
 
                         <div class="card">
-                            <div class="card-inner">
-                                <h3>
-                                    <i class="fas fa-code"></i>
-                                    Work
-                                </h3>
-                                <p>Delivered LangChain and LangGraph orchestration, multi-modal RAG pipelines, Azure-hosted ML services, and secure enterprise data workflows.</p>
-                                <a href="https://pratyushmathur.vercel.app" target="_blank" rel="noopener noreferrer">View Portfolio →</a>
-                            </div>
+                            <h3><i class="fas fa-code"></i> Work</h3>
+                            <p>LangChain/LangGraph orchestration, multi-modal RAG pipelines, Azure-hosted services, and secure enterprise workflows.</p>
+                            <a href="https://pratyushmathur.vercel.app" target="_blank" rel="noopener noreferrer">View Portfolio →</a>
                         </div>
 
                         <div class="card">
-                            <div class="card-inner">
-                                <h3>
-                                    <i class="fas fa-graduation-cap"></i>
-                                    Expertise
-                                </h3>
-                                <p>Specialized in production LLM orchestration, fine-tuning with LoRA/PEFT/QLoRA, PyTorch model deployment, and AI-powered enterprise automation.</p>
-                                <a href="https://pratyushmathur.vercel.app/#about" target="_blank" rel="noopener noreferrer">Learn More →</a>
-                            </div>
+                            <h3><i class="fas fa-graduation-cap"></i> Expertise</h3>
+                            <p>Production LLM orchestration, fine-tuning with LoRA/PEFT/QLoRA, PyTorch deployment, and AI automation.</p>
+                            <a href="https://pratyushmathur.vercel.app/#about" target="_blank" rel="noopener noreferrer">Learn More →</a>
                         </div>
 
                         <div class="skills-section">
@@ -1496,14 +1740,14 @@
             const historyList = document.getElementById("historyList");
             const history = JSON.parse(localStorage.getItem("documentHistory") || "[]");
             if (!history.length) {
-                historyList.innerHTML = "<p style='color: var(--text-secondary); margin: 0;'>No uploads yet. Use Upload & Process to add documents.</p>";
+                historyList.innerHTML = "<div class='history-empty'>No uploads yet. Use Upload to add documents.</div>";
                 return;
             }
             historyList.innerHTML = history.map(item => {
                 const time = new Date(item.timestamp).toLocaleString();
-                return `<div style='margin-bottom: 14px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;'>
-                    <strong style='color: var(--text-primary);'>${item.name}</strong>
-                    <div style='color: var(--text-secondary); font-size: 13px;'>${item.type} · ${time}</div>
+                return `<div class='history-item'>
+                    <strong>${item.name}</strong>
+                    <div>${item.type} · ${time}</div>
                 </div>`;
             }).join("");
         }
@@ -1650,7 +1894,7 @@
                 if (!res.body) {
                     const errorText = await res.text();
                     const errorMsg = errorText || "Server error. Please try again later.";
-                    typingDiv.querySelector('.message-text').textContent = `Error: ${errorMsg}`;
+                    typingDiv.querySelector('.message-content').innerHTML = `<div class="message-text">Error: ${escapeHtml(errorMsg)}</div>`;
                     updateJobStatusLabel("Server error: please try again later.");
                     return;
                 }
@@ -1658,13 +1902,14 @@
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = "";
+                let accumulatedAnswer = "";
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split("\n");
-                    buffer = lines.pop();
+                    buffer = lines.pop() || "";
 
                     for (const line of lines) {
                         if (!line.trim()) continue;
@@ -1672,6 +1917,7 @@
                         try {
                             eventData = JSON.parse(line);
                         } catch (err) {
+                            console.error('Failed to parse event:', line, err);
                             continue;
                         }
 
@@ -1682,16 +1928,22 @@
 
                         if (eventData.event === "status") {
                             const statusText = eventData.message || "AI Buzz is thinking...";
-                            typingDiv.querySelector('.message-text').textContent = statusText;
+                            const contentDiv = typingDiv.querySelector('.message-content');
+                            contentDiv.innerHTML = `<div class="message-text">${escapeHtml(statusText)}</div>`;
                             updateJobStatusLabel(statusText);
                         }
 
                         if (eventData.event === "answer") {
-                            typingDiv.querySelector('.message-text').innerHTML = eventData.reply || "No answer returned.";
+                            accumulatedAnswer += eventData.reply || "";
+                            const contentDiv = typingDiv.querySelector('.message-content');
+                            contentDiv.innerHTML = `<div class="message-text">${accumulatedAnswer}</div>`;
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
                         }
 
                         if (eventData.event === "error") {
-                            typingDiv.querySelector('.message-text').textContent = `Error: ${eventData.message}`;
+                            const errorMsg = eventData.message || "Unknown error";
+                            const contentDiv = typingDiv.querySelector('.message-content');
+                            contentDiv.innerHTML = `<div class="message-text">Error: ${escapeHtml(errorMsg)}</div>`;
                             updateJobStatusLabel("Server error: please try again later.");
                         }
                     }
@@ -1705,10 +1957,15 @@
                             sessionStorage.setItem('EnterpriseRAG_session_id', sessionId);
                         }
                         if (eventData.event === "answer") {
-                            typingDiv.querySelector('.message-text').textContent = eventData.reply || "No answer returned.";
+                            accumulatedAnswer += eventData.reply || "";
+                            const contentDiv = typingDiv.querySelector('.message-content');
+                            contentDiv.innerHTML = `<div class="message-text">${accumulatedAnswer}</div>`;
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
                         }
                         if (eventData.event === "error") {
-                            typingDiv.querySelector('.message-text').textContent = `Error: ${eventData.message}`;
+                            const errorMsg = eventData.message || "Unknown error";
+                            const contentDiv = typingDiv.querySelector('.message-content');
+                            contentDiv.innerHTML = `<div class="message-text">Error: ${escapeHtml(errorMsg)}</div>`;
                             updateJobStatusLabel("Server error: please try again later.");
                         }
                     } catch (err) {
@@ -1717,10 +1974,10 @@
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    typingDiv.querySelector('.message-text').textContent = "Server error: please try again later.";
+                    typingDiv.querySelector('.message-content').innerHTML = `<div class="message-text">Request timeout. Please try again.</div>`;
                     updateJobStatusLabel("Server error: please try again later.");
                 } else {
-                    typingDiv.querySelector('.message-text').textContent = `Error: ${error.message}`;
+                    typingDiv.querySelector('.message-content').innerHTML = `<div class="message-text">Error: ${escapeHtml(error.message)}</div>`;
                     updateJobStatusLabel("Server error: please try again later.");
                 }
             } finally {

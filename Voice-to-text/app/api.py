@@ -4,13 +4,14 @@ import uuid
 import os
 import shutil
 import time
+import queue
 from pathlib import Path
 from .logger import get_logger
 from fastapi import FastAPI, Form, Request, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from .chatbot import invoke as _invoke
+from .chatbot import invoke as _invoke, invoke_stream as _invoke_stream
 from fastapi.templating import Jinja2Templates
 from .helper_folder.helper_function import process_video_pipeline, ingest_pdf
 from .helper_folder.job_status import JOB_STATUS, JOB_TIMEOUT
@@ -206,9 +207,44 @@ async def chat(request: Request):
     async def event_generator():
         yield json.dumps({"event": "status", "message": "AI Buzz is thinking...", "session_id": session_id}) + "\n"
         try:
+            # Run the streaming generator in a thread pool
             loop = asyncio.get_running_loop()
-            answer = await loop.run_in_executor(None, lambda: _invoke(user_query, session_id))
-            yield json.dumps({"event": "answer", "reply": answer, "session_id": session_id}) + "\n"
+            
+            # Create a queue to transfer data from sync generator to async
+            chunk_queue = queue.Queue()
+            
+            def run_stream():
+                try:
+                    for chunk in _invoke_stream(user_query, session_id):
+                        if chunk:
+                            chunk_queue.put(("chunk", chunk))
+                    chunk_queue.put(("done", None))
+                except Exception as e:
+                    chunk_queue.put(("error", str(e)))
+            
+            # Run generator in executor
+            executor_task = loop.run_in_executor(None, run_stream)
+            
+            # Read from queue and yield
+            while True:
+                try:
+                    # Check queue with timeout
+                    msg_type, msg_data = chunk_queue.get(timeout=1)
+                    
+                    if msg_type == "chunk":
+                        yield json.dumps({"event": "answer", "reply": msg_data, "session_id": session_id}) + "\n"
+                        await asyncio.sleep(0.001)
+                    elif msg_type == "done":
+                        break
+                    elif msg_type == "error":
+                        yield json.dumps({"event": "error", "message": msg_data, "session_id": session_id}) + "\n"
+                        break
+                except queue.Empty:
+                    # Check if executor finished
+                    if executor_task.done():
+                        break
+                    await asyncio.sleep(0.01)
+                    
         except Exception as e:
             yield json.dumps({"event": "error", "message": str(e), "session_id": session_id}) + "\n"
 
