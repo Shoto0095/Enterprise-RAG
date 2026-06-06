@@ -2,7 +2,7 @@ fastapi
 uvicorn
 python-multipart
 
-openai-whisper
+groq
 reportlab
 
 langchain

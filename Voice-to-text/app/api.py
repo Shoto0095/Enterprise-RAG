@@ -6,14 +6,13 @@ import shutil
 import time
 from pathlib import Path
 from .logger import get_logger
-from fastapi import FastAPI, Form, Request, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Form, Request, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from .chatbot import invoke as _invoke
 from fastapi.templating import Jinja2Templates
 from .helper_folder.helper_function import process_video_pipeline, ingest_pdf
-from .helper_folder.job_status import JOB_STATUS, JOB_TIMEOUT
 
 _logger = get_logger("api")
 app = FastAPI(title="Video to PDF Transcription")
@@ -61,17 +60,10 @@ async def read_root():
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
     """
-    Handle video file upload and start processing pipeline
+    Handle video file upload and process synchronously
     """
-    # 🔥 FORCE CLEANUP ON RESTART
-    for job_id, job in JOB_STATUS.items():
-        if job.get("status") == "processing":
-            job["status"] = "failed"
-            job["message"] = "Job force-stopped due to server restart"
-    _logger.info("✅ Cleaned up ongoing jobs on server restart")
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file selected")
 
@@ -84,16 +76,10 @@ async def upload_file(
         )
 
     try:
-         # Create job entry
-        job_id = str(uuid.uuid4())
-        JOB_STATUS[job_id] = {
-            "status": "processing",
-            "started_at": time.time(),
-            "message": "Processing started"
-        }
         filename = file.filename
         content_type = (file.content_type or "").lower()
         _logger.info(f"Received file: {filename} of type: {content_type}")
+        
         if content_type.startswith("video/"):
             video_path = os.path.join(UPLOAD_FOLDER, filename)
 
@@ -101,63 +87,83 @@ async def upload_file(
             with open(video_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
-
-            # Run pipeline in background
-            background_tasks.add_task(
-                process_video_pipeline,
-                video_path,
-                filename,
-                job_id
-            )
+            # Run pipeline synchronously
+            transcript_text = _invoke_transcribe_and_ingest(video_path, filename)
 
             return {
                 "success": True,
-                "job_id": job_id,
-                "message": "Video uploaded. Processing started."
+                "message": "Video uploaded and processed successfully.",
+                "filename": filename
             }
-        elif type == "application/pdf":
+            
+        elif content_type == "application/pdf":
             pdf_path = os.path.join(PDF_FOLDER, filename)
 
             # Save file
             with open(pdf_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
-            success = ingest_pdf(pdf_path)
+                
+            success = _invoke_ingest_pdf(pdf_path)
 
             if not success:
                 _logger.error(f"PDF ingestion failed for {filename}")
-                JOB_STATUS[job_id]["status"] = "failed"
-                JOB_STATUS[job_id]["message"] = "Error occurred please try again later"
                 raise HTTPException(status_code=500, detail="Error occurred please try again later")
-
-            JOB_STATUS[job_id]["status"] = "success"
-            JOB_STATUS[job_id]["message"] = "Processing completed successfully"
 
             return {
                 "success": True,
-                "job_id": job_id,
-                "message": "PDF uploaded successfully. Processing completed."
+                "message": "PDF uploaded and processed successfully.",
+                "filename": filename
             }
         else:
-            _logger.error(f"Unsupported file type: {type}")
+            _logger.error(f"Unsupported file type: {content_type}")
             raise HTTPException(status_code=400, detail="Unsupported file type")    
 
     except Exception as e:
         _logger.error(f"Upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+def _invoke_transcribe_and_ingest(video_path: str, filename: str):
+    """Helper to run transcription and ingestion synchronously"""
+    from .video_to_text import transcribe_video
+    from .helper_folder.helper_function import create_pdf_from_text, ingest_pdf
+    from .chatbot import restart_chatbot
     
-@app.get("/status/{job_id}")
-async def get_status(job_id: str):
-    job = JOB_STATUS.get(job_id)
+    try:
+        transcript_text = transcribe_video(video_path)
+        pdf_path = create_pdf_from_text(transcript_text, filename)
+        success = ingest_pdf(pdf_path)
 
-    if not job:
-        return {"status": "unknown"}
+        if not success:
+            raise RuntimeError("PDF ingestion failed")
 
-    if job["status"] == "processing":
-        if time.time() - job["started_at"] > JOB_TIMEOUT:
-            job["status"] = "failed"
-            job["message"] = "Processing timed out"
+        _logger.info(f"Pipeline completed for {filename}")
+        restart_chatbot()
+        return transcript_text
+    except Exception as e:
+        _logger.error(f"Error in processing pipeline for {filename}: {str(e)}")
+        raise
 
-    return job
+
+def _invoke_ingest_pdf(pdf_path: str):
+    """Helper to ingest PDF synchronously"""
+    from .helper_folder.ingest_pdf import ingest_pdf
+    from .chatbot import restart_chatbot
+    
+    try:
+        success = ingest_pdf(pdf_path)
+        if success:
+            restart_chatbot()
+        return success
+    except Exception as e:
+        _logger.error(f"Error ingesting PDF: {str(e)}")
+        raise
+    
+@app.get("/chat-history")
+async def get_chat_history():
+    """Get chat history for current session"""
+    # Placeholder for chat history endpoint
+    return {"history": []}
 
 @app.post("/chatting")
 async def chat(request: Request):

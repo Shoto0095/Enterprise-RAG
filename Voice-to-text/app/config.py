@@ -17,6 +17,7 @@ except Exception:
 
 class Settings:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     CHROMA_DIR: str = os.getenv("CHROMA_DIR", "./chroma_db")
     CHROMA_COLLECTION: str = os.getenv("CHROMA_COLLECTION", "project_kb")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")

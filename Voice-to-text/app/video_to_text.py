@@ -1,13 +1,16 @@
-import whisper
+from groq import Groq
 import os
 from .logger import get_logger
+from .config import settings
+
 logger = get_logger("video_to_text")
-# Load model once at module level
-model = whisper.load_model("tiny")  # base / small / medium / large
+
+# Initialize Groq client
+client = Groq(api_key=settings.GROQ_API_KEY)
 
 def transcribe_video(video_path):
     """
-    Transcribe video using Whisper
+    Transcribe video using Groq's Whisper API
     
     Args:
         video_path: Path to the video file
@@ -16,8 +19,13 @@ def transcribe_video(video_path):
         str: Transcribed text
     """
     try:
-        result = model.transcribe(video_path)
-        return result["text"]
+        with open(video_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                file=(os.path.basename(video_path), audio_file),
+                model="whisper-large-v3-turbo",
+                language="en"
+            )
+        return transcript.text
     except Exception as e:
         logger.error(f"Error transcribing video {video_path}: {str(e)}")
         raise

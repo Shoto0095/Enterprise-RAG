@@ -1541,7 +1541,6 @@
 
     <script>
         let selectedFile = null;
-        let pollingInterval = null;
 
         // DOM Elements
         const uploadArea = document.getElementById("uploadArea");
@@ -1646,13 +1645,20 @@
 
             uploadBtn.disabled = true;
             progressContainer.classList.add("show");
-            showMessage("Uploading and processing started.", "info");
+            showMessage("Uploading and processing... (Timeout in 8 minutes)", "info");
+
+            const timeoutMs = 8 * 60 * 1000; // 8 minutes
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
             try {
                 const res = await fetch("/upload", {
                     method: "POST",
-                    body: formData
+                    body: formData,
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 const data = await res.json();
 
@@ -1663,65 +1669,23 @@
                     return;
                 }
 
-                if (data.job_id) {
-                    localStorage.setItem("currentJobId", data.job_id);
-                    saveHistory(selectedFile);
-                    startPolling(data.job_id);
-                } else {
-                    showMessage(data.message || "Upload completed successfully.", "success");
-                    uploadBtn.disabled = false;
-                    progressContainer.classList.remove("show");
-                }
+                // Success
+                saveHistory(selectedFile);
+                showMessage("✅ Processing complete. Head to AI Buzz to explore.", "success");
+                uploadBtn.disabled = false;
+                progressContainer.classList.remove("show");
+
             } catch (error) {
-                showMessage("Connection error. Please try again.", "error");
+                clearTimeout(timeoutId);
+
+                if (error.name === "AbortError") {
+                    showMessage("Request timeout (8 minutes). Please try again.", "error");
+                } else {
+                    showMessage("Connection error. Please try again.", "error");
+                }
                 uploadBtn.disabled = false;
                 progressContainer.classList.remove("show");
             }
-        }
-
-        async function startPolling(jobId) {
-            if (!jobId) {
-                cleanup();
-                return;
-            }
-
-            if (pollingInterval) clearInterval(pollingInterval);
-
-            pollingInterval = setInterval(async () => {
-                try {
-                    const res = await fetch(`/status/${jobId}`);
-                    const data = await res.json();
-
-                    if (data.status === "processing") {
-                        showMessage("File is being processed. Please wait.", "info");
-                        return;
-                    }
-
-                    if (data.status === "success") {
-                        showMessage("Processing complete. Head to AI Buzz to explore.", "success");
-                        cleanup();
-                        return;
-                    }
-
-                    if (data.status === "failed") {
-                        showMessage(`Processing failed: ${data.message}`, "error");
-                        cleanup();
-                        return;
-                    }
-
-                    cleanup();
-                } catch (error) {
-                    console.error("Polling error:", error);
-                }
-            }, 3000);
-        }
-
-        function cleanup() {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
-            localStorage.removeItem("currentJobId");
-            progressContainer.classList.remove("show");
-            uploadBtn.disabled = false;
         }
 
         function saveHistory(file) {
@@ -1778,10 +1742,6 @@
             const jobId = localStorage.getItem("currentJobId");
             if (!jobId) {
                 updateJobStatusLabel("No active document processing.");
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
-                }
                 return;
             }
 
@@ -1793,40 +1753,16 @@
                 } else if (data.status === "success") {
                     updateJobStatusLabel("Last upload processed successfully.");
                     localStorage.removeItem("currentJobId");
-                    if (pollingInterval) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                    }
                 } else if (data.status === "failed") {
                     updateJobStatusLabel(`Upload failed: ${data.message}`);
                     localStorage.removeItem("currentJobId");
-                    if (pollingInterval) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                    }
                 } else {
                     updateJobStatusLabel("No active document processing.");
                     localStorage.removeItem("currentJobId");
-                    if (pollingInterval) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                    }
                 }
             } catch (err) {
                 updateJobStatusLabel("Unable to fetch upload status.");
             }
-        }
-
-        function startStatusPolling() {
-            const jobId = localStorage.getItem("currentJobId");
-            if (!jobId) {
-                return;
-            }
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-            }
-            fetchJobStatus();
-            pollingInterval = setInterval(fetchJobStatus, 5000);
         }
 
         function addMessage(text, sender) {
