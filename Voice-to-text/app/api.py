@@ -92,9 +92,9 @@ async def upload_file(
             "message": "Processing started"
         }
         filename = file.filename
-        type = file.content_type
-        _logger.info(f"Received file: {filename} of type: {type}")
-        if type.startswith("video/"):
+        content_type = (file.content_type or "").lower()
+        _logger.info(f"Received file: {filename} of type: {content_type}")
+        if content_type.startswith("video/"):
             video_path = os.path.join(UPLOAD_FOLDER, filename)
 
             # Save file
