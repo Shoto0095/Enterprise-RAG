@@ -3,10 +3,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from ..logger import get_logger
+from ..config import settings
 
 logger = get_logger("ingest_pdf")
-# Initialize embeddings once at module level
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+# Initialize embeddings once at module level using HuggingFace API token
+embeddings = HuggingFaceEmbeddings(
+    model_name=settings.EMBEDDING_MODEL,
+    huggingfacehub_api_token=settings.HF_API_KEY
+)
 
 def ingest_pdf(pdf_path, collection_name="project_kb", db_path="./chroma_db"):
     """

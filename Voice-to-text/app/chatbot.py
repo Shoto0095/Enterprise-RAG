@@ -4,16 +4,17 @@ RAG orchestration: retriever, prompt and chain.
 Expose `invoke(query)` and `restart_chatbot()` for callers.
 """
 
+from typing import Optional
 from langchain_chroma import Chroma
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_core.callbacks import StdOutCallbackHandler
 from .llm import GeminiLLM
 from .config import settings
+from .helper_folder.ingest_pdf import embeddings
 
-# from .embedding_wrapper import CachedEmbeddingFunction
-# cached_embeddings = CachedEmbeddingFunction()
-cached_embeddings = None  # <-- keep as-is if already defined elsewhere
+# Use embeddings initialized with HuggingFace API token
+cached_embeddings = embeddings
 
 # -----------------------------
 # Internal mutable state
@@ -79,7 +80,6 @@ def _init_rag():
 
     llm = GeminiLLM(
         model=settings.GEMINI_MODEL,
-        streaming=False,
         callbacks=[StdOutCallbackHandler()],
     )
 
@@ -106,25 +106,26 @@ def restart_chatbot():
     _init_rag()
 
 
-def invoke(query: str, session_id: str = None):
+def invoke(query: str, session_id: Optional[str] = None):
     """
     Invoke the RAG chain synchronously.
     """
+    global _rag_chain
     if _rag_chain is None:
         _init_rag()
-    config = {"configurable": {"thread_id": session_id}} if session_id else None
-    return _rag_chain.invoke(query, config=config)
+    assert _rag_chain is not None
+    return _rag_chain.invoke(query)
 
 
-def invoke_stream(query: str, session_id: str = None):
+def invoke_stream(query: str, session_id: Optional[str] = None):
     """
     Invoke the RAG chain with streaming output.
     Yields chunks of the response as they are generated.
     """
-    if _rag_chain is None:
+    global _retriever
+    if _retriever is None:
         _init_rag()
-    
-    config = {"configurable": {"thread_id": session_id}} if session_id else None
+    assert _retriever is not None
     
     # Get context from retriever
     context_docs = _retriever.invoke(query)
@@ -136,7 +137,6 @@ def invoke_stream(query: str, session_id: str = None):
     # Get LLM instance and stream
     llm = GeminiLLM(
         model=settings.GEMINI_MODEL,
-        streaming=True,
     )
     
     # Stream from LLM
