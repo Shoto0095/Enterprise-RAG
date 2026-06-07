@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "app/api.py": {
-      "runtime": "python3.12"
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
